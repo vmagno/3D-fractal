@@ -3,9 +3,6 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-INCLUDEPATH += \
-    /opt/cuda/include
-
 SOURCES += \
     Main.cpp \
     SDLWindow.cpp \
@@ -44,9 +41,42 @@ DISTFILES += \
     PhongLightingFragmentShader.glsl
 
 
-
-LIBS += \
-    -L/opt/cuda/lib64/ -lcudart
-
-
 DEPENDPATH += /opt/cuda/lib64
+
+##############
+# CUDA stuff #
+##############
+CUDA_SOURCES += Kernels.cu
+
+CUDA_DIR = "/opt/cuda"
+CUDA_OBJECTS_DIR = ./
+CUDA_ARCH = compute_30
+CUDA_CODE = sm_52
+
+SYSTEM_TYPE = 64
+
+INCLUDEPATH += $$CUDA_DIR/include
+INCLUDEPATH += $$CUDA_DIR/samples/common/inc
+
+QMAKE_LIBDIR += $$CUDA_DIR/lib64/
+LIBS += -lcudart
+
+
+# Configuration of the Cuda compiler
+CONFIG(debug, debug|release) {
+    # Debug mode
+    cuda_d.input = CUDA_SOURCES
+    cuda_d.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o
+    cuda_d.commands = $$CUDA_DIR/bin/nvcc -D_DEBUG $$NVCC_OPTIONS $$CUDA_INC $$NVCC_LIBS --machine $$SYSTEM_TYPE --gpu-architecture=$$CUDA_ARCH --gpu-code=$$CUDA_CODE -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
+    #cuda_d.commands = $$CUDA_DIR/bin/nvcc -D_DEBUG $$NVCC_OPTIONS $$CUDA_INC $$NVCC_LIBS --machine $$SYSTEM_TYPE --gpu-architecture=$$CUDA_ARCH -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
+    cuda_d.dependency_type = TYPE_C
+    QMAKE_EXTRA_COMPILERS += cuda_d
+}
+else {
+    # Release mode
+    cuda.input = CUDA_SOURCES
+    cuda.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o
+    cuda.commands = $$CUDA_DIR/bin/nvcc $$NVCC_OPTIONS $$CUDA_INC $$NVCC_LIBS --machine $$SYSTEM_TYPE --gpu-architecture=$$CUDA_ARCH --gpu-code=$$CUDA_CODE -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
+    cuda.dependency_type = TYPE_C
+    QMAKE_EXTRA_COMPILERS += cuda
+}
