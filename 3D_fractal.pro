@@ -15,7 +15,8 @@ SOURCES += \
     Camera.cpp \
     LightSource.cpp \
     LightShader.cpp \
-    Material.cpp
+    Material.cpp \
+    FractalObject.cpp
 
 HEADERS += \
     Util.h \
@@ -28,7 +29,9 @@ HEADERS += \
     CudaMath.h \
     LightSource.h \
     LightShader.h \
-    Material.h
+    Material.h \
+    FractalObject.h \
+    HostDeviceCode.h
 
 unix: LIBS += -lSDL2 \
               -lGLEW \
@@ -39,3 +42,11 @@ DISTFILES += \
     BaseFragmentShader.glsl \
     PhongLightingVertexShader.glsl \
     PhongLightingFragmentShader.glsl
+
+
+
+LIBS += \
+    -L/opt/cuda/lib64/ -lcudart
+
+
+DEPENDPATH += /opt/cuda/lib64
