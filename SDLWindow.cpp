@@ -4,7 +4,10 @@
 
 #include <GL/glew.h>
 
-#include <Util.h>
+#include "CudaMath.h"
+#include "DisplayItem.h"
+#include "FractalObject.h"
+#include "Util.h"
 
 using namespace std;
 
@@ -18,7 +21,7 @@ SDLWindow::SDLWindow()
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
-        LogSDLError(cerr, "SDL_init");
+        Util::LogSDLError(cerr, "SDL_init");
     }
 
     Window_ = SDL_CreateWindow( "Yayy!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Width_, Height_,
@@ -26,7 +29,7 @@ SDLWindow::SDLWindow()
 
     if (Window_ == NULL)
     {
-        LogSDLError(cerr, "SDL_CreateWindow");
+        Util::LogSDLError(cerr, "SDL_CreateWindow");
     }
 
     Context_ = SDL_GL_CreateContext(Window_);
@@ -50,15 +53,16 @@ SDLWindow::~SDLWindow()
     SDL_DestroyWindow(Window_);
     SDL_Quit();
 
-    for (uint i = 0; i < SceneObjects.size(); i++)
+    for (uint i = 0; i < SceneObjects_.size(); i++)
     {
-        delete SceneObjects[i];
+        delete SceneObjects_[i];
     }
 }
 
 void SDLWindow::Animate()
 {
     Camera_.Move();
+    Fractal_->Update();
 }
 
 void SDLWindow::Draw()
@@ -69,15 +73,33 @@ void SDLWindow::Draw()
         return;
     }
 
+    glClearColor(0.4f, 0.4f, 0.4f, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glViewport(0, 0, Width_, Height_);
 
     Camera_.SetMatrix(&VisMatrix_);
     SetProjection();
-    //Light_.SetPosition(Camera_.GetPosition());
+    //Light_.SetPosition(Camera_.GetPosition() + Camera_.GetDirection());
 
-    for (auto it = SceneObjects.begin(); it != SceneObjects.end(); it++)
+    for (auto it = SceneObjects_.begin(); it != SceneObjects_.end(); it++)
     {
         (*it)->Draw();
+    }
+
+    glColor4f(1.f, 1.f, 1.f, 1.f);
+    glPointSize(20.f);
+    glBegin(GL_POINTS);
+    glVertex3fv((float*)&Light_.GetPosition());
+    glEnd();
+
+    // Draw HUD
+    {
+        const uint HUDWidth = 256;
+        const uint HUDHeight = 256;
+        const uint2 HUDPos = make_uint2(0, Height_ - HUDHeight);
+        glViewport(HUDPos.x, HUDPos.y, HUDWidth, HUDHeight);
+        HUD_->Draw();
     }
 
     SDL_GL_SwapWindow(Window_);
@@ -248,11 +270,11 @@ void SDLWindow::InitScene()
             0.f, 0.f, 1.f
         };
 
-        float4 Color = make_float4(1.f, 0.f, 0.f, 1.f);
+        float4 Color = make_float4(0.f, 1.f, 0.f, 1.f);
 
         TestObject->Init(&PhongShader_, &ProjMatrix_, &VisMatrix_,
                          (float3*)Vertices, (float3*)Normals, 4, (uint3*)Connect, 4, &Color, 1);
-        SceneObjects.push_back(TestObject);
+        SceneObjects_.push_back(TestObject);
 
         DisplayItem* T2 = new DisplayItem();
 
@@ -265,7 +287,36 @@ void SDLWindow::InitScene()
         float4 c2 = make_float4(0.f, 0.f, 1.f, 1.f);
         T2->Init(&BaseShaders_, &ProjMatrix_, &VisMatrix_,
                  (float3*)v2, (float3*)Normals, 3, (uint3*)Connect, 1, &c2, 1);
-        SceneObjects.push_back(T2);
+        SceneObjects_.push_back(T2);
+    }
+
+    {
+        Fractal_ = new FractalObject();
+        Fractal_->Init(&PhongShader_, &ProjMatrix_, &VisMatrix_,
+                          NULL, NULL, 100000, NULL, 100000, NULL, 100000);
+        SceneObjects_.push_back(Fractal_);
+    }
+
+    {
+        HUD_ = new DisplayItem();
+        float Vertices[] = {
+            -1.f, -1.f, 1.f,
+             1.f, -1.f, 1.f,
+             1.f,  1.f, 1.f,
+            -1.f,  1.f, 1.f
+        };
+        uint Connect[] = {
+            0, 1, 2,
+            2, 3, 0
+        };
+        float4 Color = make_float4(1.f, 1.f, 1.f, 1.f);
+
+        TransformMatrix* HUDProj = new TransformMatrix();
+        HUDProj->Ortho(-1.f, 1.f, -1.f, 1.f, 1.f, -1.f);
+        TransformMatrix* HUDVis = new TransformMatrix();
+        HUDVis->LookAt(0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
+
+        HUD_->Init(&BaseShaders_, HUDProj, HUDVis, (float3*)Vertices, NULL, 4, (uint3*)Connect, 2, &Color, 1);
     }
 
     PhongShader_.SetLightSource(&Light_);

@@ -35,11 +35,14 @@ void main( void )
    float NdotL = max(0.f, dot(N, L));
    if (NdotL > 0.f)
    {
-       Color += MatDiffuse * LightDiffuse * NdotL;
+       Color += mix(MatDiffuse, AttribsIn.Color, 0.5f) * LightDiffuse * NdotL;
 
        float NdotR = max( 0.f, dot(reflect(-L, N), O) );
        Color += MatSpecular * LightSpecular * pow(NdotR, MatShininess);
    }
 
    FragColor = clamp(Color, 0.0, 1.0);
+//   FragColor = vec4(N, 1.f);
+//   FragColor = vec4(O, 1.f);
+//   FragColor = vec4(L, 1.f);
 }

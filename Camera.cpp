@@ -5,6 +5,8 @@
 
 #include "CudaMath.h"
 
+using namespace std;
+
 Camera::Camera()
     :
       bMoveForward_(false),
@@ -16,7 +18,7 @@ Camera::Camera()
       bTurnLeft_(false),
       bTurnRight_(false),
       MoveSpeed_(0.15f),
-      RotateSpeed_(0.005f)
+      RotateSpeed_(0.002f)
 {
     Position_ = make_float3(0.f, 0.f, 10.f);
     Direction_ = make_float3(0.f, 0.f, -1.f);

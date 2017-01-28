@@ -6,6 +6,8 @@
 
 #include <GL/glew.h>
 
+class DisplayItem;
+
 class ShaderProgram
 {
 public:
@@ -21,16 +23,16 @@ public:
     void CreateProgram();
     void ReadShaderSource(std::string FileName, GLenum ShaderType);
     void LinkProgram();
-    virtual void UseProgram();
+    virtual void UseProgram(const DisplayItem* Model);
 
     virtual void RetrieveLocations();
 
-    //GLuint GetProgramId() { return ProgramId_; }
+//    //GLuint GetProgramId() { return ProgramId_; }
     GLint GetVertexLocation() { return VertexLocation_; }
     GLint GetColorLocation() { return ColorLocation_; }
-    GLint GetProjLocation() { return ProjMatrixLocation_; }
-    GLint GetVisLocation() { return VisMatrixLocation_; }
-    GLint GetModelLocation() { return ModelMatrixLocation_; }
+//    GLint GetProjLocation() { return ProjMatrixLocation_; }
+//    GLint GetVisLocation() { return VisMatrixLocation_; }
+//    GLint GetModelLocation() { return ModelMatrixLocation_; }
 
 protected:
     GLuint ProgramId_;

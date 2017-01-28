@@ -5,6 +5,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "DisplayItem.h"
+
 using namespace std;
 
 void ShaderProgram::CreateProgram()
@@ -31,13 +33,13 @@ void ShaderProgram::ReadShaderSource(string FileName, GLenum ShaderType)
     string ShaderSource = ShaderSourceStream.str();
     const int ShaderSize = ShaderSource.size();
 
-    char* SourceChars = new char[ShaderSize + 1];
+    GLchar* SourceChars = new GLchar[ShaderSize + 1];
 
     if ( SourceChars != NULL )
     {
         strcpy( SourceChars, ShaderSource.c_str() );
         GLuint ShaderObject = glCreateShader( ShaderType );
-        glShaderSource( ShaderObject, 1, &SourceChars, NULL );
+        glShaderSource( ShaderObject, 1, (const char**)&SourceChars, NULL );
         glCompileShader( ShaderObject );
         glAttachShader( ProgramId_, ShaderObject );
 
@@ -77,9 +79,18 @@ void ShaderProgram::LinkProgram()
     RetrieveLocations();
 }
 
-void ShaderProgram::UseProgram()
+void ShaderProgram::UseProgram(const DisplayItem* Model)
 {
     glUseProgram(ProgramId_);
+
+    glUniformMatrix4fv(ProjMatrixLocation_, 1, GL_FALSE, Model->GetProjMatrix());
+    glUniformMatrix4fv(VisMatrixLocation_, 1, GL_FALSE, Model->GetVisMatrix());
+    glUniformMatrix4fv(ModelMatrixLocation_, 1, GL_FALSE, Model->GetModelMatrix());
+
+    if (Model->HasSingleColor())
+    {
+        glVertexAttrib4fv(ColorLocation_, Model->GetSingleColor());
+    }
 }
 
 void ShaderProgram::RetrieveLocations()

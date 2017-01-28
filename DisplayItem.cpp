@@ -12,7 +12,8 @@ DisplayItem::DisplayItem() :
     bHasSingleColor_(false),
     Shader_(NULL),
     ProjMatrix_(NULL),
-    VisMatrix_(NULL)
+    VisMatrix_(NULL),
+    ModelMatrix_("ModelMatrix")
 {
 }
 
@@ -58,13 +59,10 @@ void DisplayItem::Init(ShaderProgram* Shaders, TransformMatrix* Projection, Tran
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, NumElements * sizeof(uint3), Connectivity, GL_STATIC_DRAW);
 
     // Init normals
-    if (Normals != NULL)
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, VBOs_[NORMAL_VBO_ID]);
-        glBufferData(GL_ARRAY_BUFFER, NumVertices * sizeof(float3), Normals, GL_STATIC_DRAW);
-        glVertexAttribPointer(((LightShader*)Shader_)->GetNormalLocation(), 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(((LightShader*)Shader_)->GetNormalLocation());
-    }
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs_[NORMAL_VBO_ID]);
+    glBufferData(GL_ARRAY_BUFFER, NumVertices * sizeof(float3), Normals, GL_STATIC_DRAW);
+    glVertexAttribPointer(((LightShader*)Shader_)->GetNormalLocation(), 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(((LightShader*)Shader_)->GetNormalLocation());
 
 
     // Init color(s)
@@ -87,24 +85,11 @@ void DisplayItem::Init(ShaderProgram* Shaders, TransformMatrix* Projection, Tran
     }
 
     glBindVertexArray(0);
-
 }
 
 void DisplayItem::Draw()
 {
-    Shader_->UseProgram();
-
-    if (bHasSingleColor_)
-    {
-        glVertexAttrib4fv(Shader_->GetColorLocation(), (float*)&SingleColor_);
-    }
-
-    glUniformMatrix4fv(Shader_->GetProjLocation(), 1, GL_FALSE, *ProjMatrix_);
-    glUniformMatrix4fv(Shader_->GetVisLocation(), 1, GL_FALSE, *VisMatrix_);
-    glUniformMatrix4fv(Shader_->GetModelLocation(), 1, GL_FALSE, ModelMatrix_);
-
-    glUniformMatrix3fv(((LightShader*)Shader_)->GetNormalMatrixLocation(), 1, GL_FALSE,
-                       glm::value_ptr( glm::inverse( glm::mat3(VisMatrix_->GetMatrix() * ModelMatrix_.GetMatrix()) ) ) );
+    Shader_->UseProgram(this);
 
     glBindVertexArray(Vao_);
 

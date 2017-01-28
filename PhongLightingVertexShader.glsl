@@ -7,8 +7,9 @@ uniform mat3 NormalMatrix;
 
 uniform vec3 LightPosition;
 
-layout(location=0) in vec4 Vertex;
+layout(location=0) in vec3 Vertex;
 layout(location=1) in vec3 Normal;
+layout(location=2) in vec4 Color;
 
 out Attribs
 {
@@ -20,12 +21,12 @@ out Attribs
 
 void main( void )
 {
-   gl_Position = ProjMatrix * VisMatrix * ModelMatrix * Vertex;
+   gl_Position = ProjMatrix * VisMatrix * ModelMatrix * vec4(Vertex, 1.f);
    AttribsOut.Normal = NormalMatrix * Normal;
-   //AttribsOut.Normal = vec3(0.f, 0.f, 1.f);
 
-   vec3 CamSpacePos = vec3(VisMatrix * ModelMatrix * Vertex);
+   vec3 CamSpacePos = vec3(VisMatrix * ModelMatrix * vec4(Vertex, 1.f));
 
    AttribsOut.LightDir = vec3( (VisMatrix * vec4(LightPosition, 1)).xyz - CamSpacePos );
    AttribsOut.ObsDir = -CamSpacePos;
+   AttribsOut.Color = Color;
 }

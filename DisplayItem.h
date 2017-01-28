@@ -4,8 +4,9 @@
 #include <GL/glew.h>
 
 #include "Common.h"
-#include "ShaderProgram.h"
 #include "TransformMatrix.h"
+
+class ShaderProgram;
 
 class DisplayItem
 {
@@ -18,7 +19,16 @@ public:
                       const float3* Vertices, const float3* Normals, const uint NumVertices,
                       const uint3* Connectivity, const uint NumElements,
                       const float4* Colors, const uint NumColors);
+
+
     void Draw();
+
+    bool HasSingleColor() const { return bHasSingleColor_; }
+    const float* GetSingleColor() const { return (float*)&SingleColor_; }
+
+    const TransformMatrix& GetProjMatrix() const { return *ProjMatrix_; }
+    const TransformMatrix& GetVisMatrix() const { return *VisMatrix_; }
+    const TransformMatrix& GetModelMatrix() const { return ModelMatrix_; }
 
 protected:
     const uint NumVBO_ = 4;

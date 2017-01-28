@@ -6,12 +6,14 @@
 #include <SDL2/SDL.h>
 
 #include "Camera.h"
-#include "DisplayItem.h"
 #include "LightShader.h"
 #include "LightSource.h"
 #include "Material.h"
 #include "ShaderProgram.h"
 #include "TransformMatrix.h"
+
+class DisplayItem;
+class FractalObject;
 
 class SDLWindow
 {
@@ -48,7 +50,10 @@ private:
     bool bRotateCamera_;
     int PreviousX_, PreviousY_;
 
-    std::vector<DisplayItem*> SceneObjects;
+    std::vector<DisplayItem*> SceneObjects_;
+    FractalObject* Fractal_;
+
+    DisplayItem* HUD_;
 
     /**
      * @brief HandleKeyPress

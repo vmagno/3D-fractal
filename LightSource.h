@@ -8,7 +8,7 @@ class LightSource
 public:
     LightSource()
         :
-          Position_(make_float3(-8.f, 8.f, 10.f)),
+          Position_(make_float3(-0.f, 0.f, 5.f)),
           Ambient_(make_float4(1.f, 1.f, 1.f, 1.f)),
           Diffuse_(make_float4(1.f, 1.f, 1.f, 1.f)),
           Specular_(make_float4(1.f, 1.f, 1.f, 1.f))

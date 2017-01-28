@@ -12,6 +12,7 @@ public:
     void SetMatrix(TransformMatrix* Matrix);
 
     float3 GetPosition() { return Position_; }
+    float3 GetDirection() { return Direction_; }
 
     void Move();
     void SetMoveForward(bool bForward = true) { bMoveForward_ = bForward; }

@@ -13,7 +13,9 @@ SOURCES += \
     LightSource.cpp \
     LightShader.cpp \
     Material.cpp \
-    FractalObject.cpp
+    FractalObject.cpp \
+    Util.cpp \
+    TexturedItem.cpp
 
 HEADERS += \
     Util.h \
@@ -28,7 +30,11 @@ HEADERS += \
     LightShader.h \
     Material.h \
     FractalObject.h \
-    HostDeviceCode.h
+    HostDeviceCode.h \
+    Kernels.h \
+    DeviceUtil.cuh \
+    MarchingCubesTables.h \
+    TexturedItem.h
 
 unix: LIBS += -lSDL2 \
               -lGLEW \
@@ -38,7 +44,9 @@ DISTFILES += \
     BaseVertexShader.glsl \
     BaseFragmentShader.glsl \
     PhongLightingVertexShader.glsl \
-    PhongLightingFragmentShader.glsl
+    PhongLightingFragmentShader.glsl \
+    Bucky.raw \
+    black.bmp
 
 
 DEPENDPATH += /opt/cuda/lib64
@@ -61,14 +69,21 @@ INCLUDEPATH += $$CUDA_DIR/samples/common/inc
 QMAKE_LIBDIR += $$CUDA_DIR/lib64/
 LIBS += -lcudart
 
+NVCC_OPTIONS += -g
 
 # Configuration of the Cuda compiler
 CONFIG(debug, debug|release) {
     # Debug mode
     cuda_d.input = CUDA_SOURCES
     cuda_d.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o
-    cuda_d.commands = $$CUDA_DIR/bin/nvcc -D_DEBUG $$NVCC_OPTIONS $$CUDA_INC $$NVCC_LIBS --machine $$SYSTEM_TYPE --gpu-architecture=$$CUDA_ARCH --gpu-code=$$CUDA_CODE -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
-    #cuda_d.commands = $$CUDA_DIR/bin/nvcc -D_DEBUG $$NVCC_OPTIONS $$CUDA_INC $$NVCC_LIBS --machine $$SYSTEM_TYPE --gpu-architecture=$$CUDA_ARCH -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
+    cuda_d.commands = \
+        $$CUDA_DIR/bin/nvcc \
+        -D_DEBUG \
+        $$NVCC_OPTIONS \
+        $$CUDA_INC \
+        $$NVCC_LIBS \
+        --machine $$SYSTEM_TYPE --gpu-architecture=$$CUDA_ARCH --gpu-code=$$CUDA_CODE \
+        -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
     cuda_d.dependency_type = TYPE_C
     QMAKE_EXTRA_COMPILERS += cuda_d
 }

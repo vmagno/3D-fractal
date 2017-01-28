@@ -2,8 +2,10 @@
 
 #include <iostream>
 
+#include "DisplayItem.h"
 #include "LightSource.h"
 #include "Material.h"
+#include "TransformMatrix.h"
 
 using namespace std;
 
@@ -27,9 +29,9 @@ void LightShader::RetrieveLocations()
     MatShininessLocation_ = glGetUniformLocation(ProgramId_, "MatShininess"); CheckLocation(MatShininessLocation_, "MatShininess");
 }
 
-void LightShader::UseProgram()
+void LightShader::UseProgram(const DisplayItem* Model)
 {
-    ShaderProgram::UseProgram();
+    ShaderProgram::UseProgram(Model);
 
     glUniform3fv(LightPosLocation_, 1, (float*)&(Light_->GetPosition()));
     glUniform4fv(LightAmbientLocation_, 1, (float*)&(Light_->GetAmbient()));
@@ -41,4 +43,7 @@ void LightShader::UseProgram()
     glUniform4fv(MatDiffuseLocation_, 1, (float*)&(Material_->GetDiffuse()));
     glUniform4fv(MatSpecularLocation_, 1, (float*)&(Material_->GetSpecular()));
     glUniform1f(MatShininessLocation_, Material_->GetShininess());
+
+    glUniformMatrix3fv(NormalMatrixLocation_, 1, GL_TRUE,
+                       glm::value_ptr( glm::inverse( glm::mat3(Model->GetVisMatrix().GetMatrix() * Model->GetModelMatrix().GetMatrix()) ) ));
 }

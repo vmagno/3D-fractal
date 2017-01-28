@@ -15,14 +15,14 @@ public:
         NormalLocation_(-1)
     {}
 
-    void RetrieveLocations();
-    void UseProgram();
+    void RetrieveLocations() override;
+    void UseProgram(const DisplayItem* Model) override;
 
     void SetLightSource(LightSource* Light) { Light_ = Light; }
     void SetMaterial(Material* Material) { Material_ = Material; }
 
     GLint GetNormalLocation() { return NormalLocation_; }
-    GLint GetNormalMatrixLocation() { return NormalMatrixLocation_; }
+//    GLint GetNormalMatrixLocation() { return NormalMatrixLocation_; }
 
 private:
     GLint NormalLocation_;
@@ -43,7 +43,6 @@ private:
 
     LightSource* Light_;
     Material* Material_;
-
 };
 
 #endif // LIGHTSHADER_H

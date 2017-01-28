@@ -19,7 +19,10 @@
 class TransformMatrix
 {
 public:
-    TransformMatrix() { Matrices_.push(glm::mat4(1.f)); }
+    TransformMatrix(std::string Name = "SomeName")
+        :
+          Name_(Name)
+    { Matrices_.push(glm::mat4(1.f)); }
 
     void LoadIdentity() { Matrices_.top() = glm::mat4(1.f); }
 
@@ -51,8 +54,8 @@ public:
     void PushMatrix() { Matrices_.push( Matrices_.top() ); }
     void PopMatrix() { Matrices_.pop(); }
 
-    glm::mat4 GetMatrix() { return Matrices_.top(); }
-    glm::mat4 SetMatrix(glm::mat4 NewMatrix) { return( Matrices_.top() = NewMatrix ); }
+    const glm::mat4 GetMatrix() const { return Matrices_.top(); }
+    const glm::mat4 SetMatrix(glm::mat4 NewMatrix) { return( Matrices_.top() = NewMatrix ); }
 
     operator const GLfloat*() const { return glm::value_ptr(Matrices_.top()); }
 
@@ -69,6 +72,7 @@ public:
 
 private:
     std::stack<glm::mat4> Matrices_;
+    std::string Name_;
 };
 
 #endif // TRANSFORMMATRIX_H
