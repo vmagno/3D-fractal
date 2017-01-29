@@ -40,6 +40,8 @@ struct ArrayPointers
     cudaTextureObject_t TriangleTableTex;
     cudaTextureObject_t NumVertexTableTex;
 
+    uint* TexCudaTarget;
+
     void Nullify()
     {
         Vertices = NULL;
@@ -55,6 +57,8 @@ struct ArrayPointers
         EdgeTable = NULL;
         TriangleTable = NULL;
         NumVertexTable = NULL;
+
+        TexCudaTarget = NULL;
     }
 };
 
@@ -73,6 +77,8 @@ struct KernelParameters
 
     float Threshold;
 
+    uint ZSlice;
+
     void Print()
     {
         fprintf(stdout,
@@ -84,7 +90,8 @@ struct KernelParameters
                 "MinPosition: %.2f %.2f %.2f\n"
                 "NumVertices: %d\n"
                 "MaxVertices: %d\n"
-                "Threshold: %.2f\n",
+                "Threshold: %.2f\n"
+                "ZSlice: %d\n",
                 BlockSize.x, BlockSize.y, BlockSize.z,
                 NumBlocks.x, NumBlocks.y, NumBlocks.z,
                 NumVoxels,
@@ -93,7 +100,8 @@ struct KernelParameters
                 MinPosition.x, MinPosition.y, MinPosition.z,
                 NumVertices,
                 MaxVertices,
-                Threshold);
+                Threshold,
+                ZSlice);
     }
 };
 

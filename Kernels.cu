@@ -73,6 +73,15 @@ __global__ void ClassifyVoxels(KernelParameters Param, ArrayPointers DevicePoint
     CellValues[6] = GetVoxelValue(Param, DevicePointers, VoxelLocation + make_uint3(1, 1, 1));
     CellValues[7] = GetVoxelValue(Param, DevicePointers, VoxelLocation + make_uint3(0, 1, 1));
 
+    // Set texture color (for debugging)
+    if (VoxelLocation.z == Param.ZSlice)
+    {
+        float Val = CellValues[0]; //(VoxelLocation.x + VoxelLocation.y) / (31.f + 31.f);
+        DevicePointers.TexCudaTarget[(Param.VoxelGridSize.y - VoxelLocation.y - 1) * Param.VoxelGridSize.x + VoxelLocation.x] =
+                MakeColor(Val * 255, 0, 255 - uint(Val * 255 ) / 32 * 31.874, 0xff);
+    }
+
+
     // Compute cell index
     uint CellId = 0;
     for (int i = 0; i < 8; i++)

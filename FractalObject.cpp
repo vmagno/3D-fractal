@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include <cuda_gl_interop.h>
+#include <SDL2/SDL.h>
 
 #include "Kernels.h"
 #include "MarchingCubesTables.h"
@@ -13,7 +14,9 @@ using namespace std;
 
 const uint3 DefaultBlockSize = make_uint3(4, 4, 4);
 const uint3 DefaultNumBlocks = make_uint3(0, 0, 0);
-const uint3 DefaultVoxelGridSize = make_uint3(0, 0, 0);
+const uint3 DefaultVoxelGridSize = make_uint3(128, 128, 128);
+//const float3 DefaultMinPosition = make_float3(-0.64f, -0.64f, -0.64f);
+const float3 DefaultVoxelSize = make_float3(0.015f, 0.015f, 0.015f);
 
 const float DefaultThreshold = 0.5f;
 
@@ -21,6 +24,10 @@ const float DefaultThreshold = 0.5f;
 FractalObject::FractalObject()
     : DisplayItem(),
       CudaVboResources_(NULL),
+      TexResource_(NULL),
+      TexArray_(NULL),
+//      TexCudaTarget_(NULL),
+      TexDataSize_(0),
       MaxTriangles_(0)
 {
     DevicePointers_.Nullify();
@@ -28,11 +35,24 @@ FractalObject::FractalObject()
     Param_.BlockSize = DefaultBlockSize;
     Param_.NumBlocks = DefaultNumBlocks;
     Param_.VoxelGridSize = DefaultVoxelGridSize;
-    Param_.NumVoxels = 0;
+
+    Param_.NumBlocks.x = Param_.VoxelGridSize.x / Param_.BlockSize.x;
+    Param_.NumBlocks.y = Param_.VoxelGridSize.y / Param_.BlockSize.y;
+    Param_.NumBlocks.z = Param_.VoxelGridSize.z / Param_.BlockSize.z;
+
+    Param_.NumVoxels = Param_.VoxelGridSize.x * Param_.VoxelGridSize.y * Param_.VoxelGridSize.z;
     Param_.NumVertices = 0;
     Param_.MaxVertices = 0;
 
+    Param_.VoxelSize = DefaultVoxelSize;
+    Param_.MinPosition = make_float3(
+                -Param_.VoxelSize.x * Param_.VoxelGridSize.x / 2.f,
+                -Param_.VoxelSize.y * Param_.VoxelGridSize.y / 2.f,
+                -Param_.VoxelSize.z * Param_.VoxelGridSize.z / 2.f
+                );
+
     Param_.Threshold = DefaultThreshold;
+    Param_.ZSlice = 0;
 }
 
 FractalObject::~FractalObject()
@@ -41,15 +61,16 @@ FractalObject::~FractalObject()
 }
 
 void FractalObject::Init(ShaderProgram* Shaders, TransformMatrix* Projection, TransformMatrix* Visualization,
-                         const float3* /*Vertices*/, const float3* /*Normals*/, const uint NumVertices,
+                         const float3* /*Vertices*/, const float3* /*Normals*/, const uint /*NumVertices*/,
                          const uint3* /*Connectivity*/, const uint NumElements,
-                         const float4* /*Colors*/, const uint /*NumColors*/)
+                         const float4* /*Colors*/, const uint /*NumColors*/, const SDL_Surface* TexImage, const float2* TexCoord)
 {
-    DisplayItem::Init(Shaders, Projection, Visualization, NULL, NULL, NumVertices, NULL, NumElements, NULL, NumVertices);
-
     MaxTriangles_ = NumElements;
     Param_.MaxVertices = MaxTriangles_ * 3;
 
+    DisplayItem::Init(Shaders, Projection, Visualization, NULL, NULL, Param_.MaxVertices, NULL, NumElements, NULL, Param_.MaxVertices, TexImage, TexCoord);
+
+    InitTexture();
     InitCuda();
 
     Param_.Print();
@@ -59,7 +80,7 @@ void FractalObject::Update()
 {
     //LaunchTest(Param_, DevicePointers_);
 
-//    LaunchSampleVolume(Param_, DevicePointers_);
+    LaunchSampleVolume(Param_, DevicePointers_);
 
     LaunchClassifyVoxel(Param_, DevicePointers_);
     LaunchThrustScan(Param_, DevicePointers_);
@@ -82,7 +103,40 @@ void FractalObject::Update()
     LaunchGenerateTriangles(Param_, DevicePointers_);
     CudaCheck(cudaDeviceSynchronize());
 
+    CudaCheck(cudaMemcpyToArray(TexArray_, 0, 0, DevicePointers_.TexCudaTarget, TexDataSize_, cudaMemcpyDeviceToDevice));
+
     UnmapBuffers();
+}
+
+void FractalObject::AttachGLTexture(GLuint TextureId, uint TexDataSize)
+{
+    TexDataSize_ = TexDataSize;
+    CudaCheck(cudaMalloc((void**)&DevicePointers_.TexCudaTarget, TexDataSize_));
+    CudaCheck(cudaMemset(DevicePointers_.TexCudaTarget, 0, TexDataSize_));
+    CudaCheck(cudaGraphicsGLRegisterImage(&TexResource_, TextureId, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
+}
+
+void FractalObject::MovePlane(int Distance)
+{
+    const int Target = Param_.ZSlice + Distance;
+    if (Target >= 0 && Target < (int)Param_.VoxelGridSize.z) Param_.ZSlice = Target;
+}
+
+void FractalObject::InitTexture()
+{
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &Texture_);
+    glBindTexture(GL_TEXTURE_2D, Texture_);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Param_.VoxelGridSize.x, Param_.VoxelGridSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+    TexDataSize_ = Param_.VoxelGridSize.x * Param_.VoxelGridSize.y * 4 * sizeof(GLubyte);
+    CudaCheck(cudaMalloc((void**)&DevicePointers_.TexCudaTarget, TexDataSize_));
+    CudaCheck(cudaMemset(DevicePointers_.TexCudaTarget, 0, TexDataSize_));
+    CudaCheck(cudaGraphicsGLRegisterImage(&TexResource_, Texture_, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 }
 
 void FractalObject::InitCuda()
@@ -96,7 +150,14 @@ void FractalObject::InitCuda()
 
     MapBuffers();
 
-    LoadVoxels();
+    CudaCheck(cudaMalloc((void**)&DevicePointers_.VoxelValues, Param_.NumVoxels * sizeof(uchar)));
+
+    CudaCheck(cudaMalloc(&DevicePointers_.VoxelVertices, Param_.NumVoxels * sizeof(uint)));
+    CudaCheck(cudaMalloc(&DevicePointers_.VoxelVerticesScan, Param_.NumVoxels * sizeof(uint)));
+    CudaCheck(cudaMemset(DevicePointers_.VoxelVertices, 0, Param_.NumVoxels * sizeof(uint)));
+    CudaCheck(cudaMemset(DevicePointers_.VoxelVerticesScan, 0, Param_.NumVoxels * sizeof(uint)));
+
+
     CreateTextures();
 
     UnmapBuffers();
@@ -110,6 +171,12 @@ void FractalObject::MapBuffers()
         CudaCheck(cudaGraphicsMapResources(1, &CudaVboResources_[iBuffer], 0));
         CudaCheck(cudaGraphicsResourceGetMappedPointer(GetArrayAddress(iBuffer), &NumBytes, CudaVboResources_[iBuffer]));
     }
+
+    if (TexResource_)
+    {
+        CudaCheck(cudaGraphicsMapResources(1, &TexResource_));
+        CudaCheck(cudaGraphicsSubResourceGetMappedArray(&TexArray_, TexResource_, 0, 0));
+    }
 }
 
 void FractalObject::UnmapBuffers()
@@ -117,6 +184,11 @@ void FractalObject::UnmapBuffers()
     for (uint iBuffer = 0; iBuffer < NumVBO_; iBuffer++)
     {
         CudaCheck(cudaGraphicsUnmapResources(1, &CudaVboResources_[iBuffer]));
+    }
+
+    if (TexResource_)
+    {
+        CudaCheck(cudaGraphicsUnmapResources(1, &TexResource_));
     }
 }
 
@@ -208,7 +280,7 @@ void FractalObject::LoadVoxels()
         Param_.NumBlocks.y = Param_.VoxelGridSize.y / Param_.BlockSize.y;
         Param_.NumBlocks.z = Param_.VoxelGridSize.z / Param_.BlockSize.z;
 
-        Param_.MinPosition = make_float3(0.f, 0.f, 0.f);
+        Param_.MinPosition = make_float3(-0.0f, -0.0f, -0.0f);
         Param_.VoxelSize = make_float3(0.05f, 0.05f, 0.05f);
 
         CudaCheck(cudaMalloc(&DevicePointers_.VoxelVertices, Param_.NumVoxels * sizeof(uint)));

@@ -26,7 +26,15 @@ __device__ uint3 GetVoxelLocation(const KernelParameters& Param, uint VoxelId)
 
 __device__ uint GetVoxelIdFromLocation(const KernelParameters& Param, const uint3& VoxelLocation)
 {
-    return ((VoxelLocation.z * Param.VoxelGridSize.y) + VoxelLocation.y) * Param.VoxelGridSize.x + VoxelLocation.x;
+    if (
+            VoxelLocation.x < Param.VoxelGridSize.x
+            && VoxelLocation.y < Param.VoxelGridSize.y
+            && VoxelLocation.z < Param.VoxelGridSize.z)
+    {
+        return ((VoxelLocation.z * Param.VoxelGridSize.y) + VoxelLocation.y) * Param.VoxelGridSize.x + VoxelLocation.x;
+    }
+
+    return Param.NumVoxels;
 }
 
 __device__ float GetVoxelValue(const ArrayPointers& DevicePointers, uint VoxelId)
@@ -79,32 +87,45 @@ __device__ float3 InterpolateVertex(const float3& VertexA, const float3& VertexB
     return VertexA + ((VertexB - VertexA) * t);
 }
 
+__device__ float3 GetNextIter(const float3& Pos, uint Power)
+{
+    float Rho = Length(Pos);
+    float Phi = atan2f(Pos.y, Pos.x);
+    float Theta = atan2f(sqrtf(Pos.x*Pos.x + Pos.y*Pos.y), Pos.z);
+
+    float3 Next =
+            Pos +
+            make_float3(sinf(Power * Theta) * cosf(Power * Phi),
+                        sinf(Power * Theta) * sinf(Power * Phi),
+                        cosf(Power * Theta))
+            * powf(Rho, Power);
+
+    return Next;
+}
+
 __device__ bool IsInMandelbulb(const float3& Position, uint Power, uint NumIterations)
 {
-    const float Threshold = 0.01f;
+    const float Threshold = 0.001f;
     float3 CurrentValue = Position;
     float CurrentLength = Length(Position);
-    float PreviousLength = 0.f;
 
     for (int i = 0; i < NumIterations; i++)
     {
-        float Rho = Length(CurrentValue);
-        float Phi = atanf(CurrentValue.y / CurrentValue.x);
-        float Theta = atanf(sqrtf(CurrentValue.x*CurrentValue.x + CurrentValue.y*CurrentValue.y) / CurrentValue.z);
+        const float3 NextValue = GetNextIter(CurrentValue, Power);
 
-        CurrentValue =
-                make_float3(sin(Power * Theta) * cos(Power * Phi),
-                            sin(Power * Theta) * sin(Power * Phi),
-                            cos(Power * Theta))
-                * Rho;
+        const float NextLength = Length(NextValue);
+        if (fabsf(NextLength - CurrentLength) < Threshold) return true;
 
-        CurrentLength = Length(CurrentValue);
-        if (CurrentLength - PreviousLength < Threshold) return true;
-
-        PreviousLength = CurrentLength;
+        CurrentLength = NextLength;
+        CurrentValue = NextValue;
     }
 
     return false;
+}
+
+__device__ uint MakeColor(uchar R, uchar G, uchar B, uchar A)
+{
+    return A << 24 | B << 16 | G << 8 | R;
 }
 
 #endif // DEVICEUTIL_CUH

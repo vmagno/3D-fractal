@@ -15,6 +15,9 @@ public:
         ProgramId_(0),
         VertexLocation_(-1),
         ColorLocation_(-1),
+        TextureLocation_(-1),
+        TexCoordLocation_(-1),
+        UseTextureLocation_(-1),
         ProjMatrixLocation_(-1),
         VisMatrixLocation_(-1),
         ModelMatrixLocation_(-1)
@@ -30,6 +33,8 @@ public:
 //    //GLuint GetProgramId() { return ProgramId_; }
     GLint GetVertexLocation() { return VertexLocation_; }
     GLint GetColorLocation() { return ColorLocation_; }
+    GLint GetTexCoordLocation() { return TexCoordLocation_; }
+    GLint GetTextureLocation() { return TextureLocation_; }
 //    GLint GetProjLocation() { return ProjMatrixLocation_; }
 //    GLint GetVisLocation() { return VisMatrixLocation_; }
 //    GLint GetModelLocation() { return ModelMatrixLocation_; }
@@ -42,6 +47,12 @@ protected:
 private:
     GLint VertexLocation_;
     GLint ColorLocation_;
+
+    GLint TextureLocation_;
+    GLint TexCoordLocation_;
+    GLint UseTextureLocation_;
+
+    bool dummy;
 
     GLint ProjMatrixLocation_;
     GLint VisMatrixLocation_;

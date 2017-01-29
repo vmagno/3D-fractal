@@ -91,6 +91,15 @@ void ShaderProgram::UseProgram(const DisplayItem* Model)
     {
         glVertexAttrib4fv(ColorLocation_, Model->GetSingleColor());
     }
+
+    if (Model->HasTexture())
+    {
+        glUniform1i(UseTextureLocation_, 1);
+    }
+    else
+    {
+        glUniform1i(UseTextureLocation_, 0);
+    }
 }
 
 void ShaderProgram::RetrieveLocations()
@@ -101,6 +110,10 @@ void ShaderProgram::RetrieveLocations()
 
     VertexLocation_ = glGetAttribLocation(ProgramId_, "Vertex"); CheckLocation(VertexLocation_, "Vertex");
     ColorLocation_ = glGetAttribLocation(ProgramId_, "Color");   CheckLocation(ColorLocation_, "Color");
+
+    TextureLocation_ = glGetUniformLocation(ProgramId_, "TheTexture"); CheckLocation(TextureLocation_, "TheTexture");
+    TexCoordLocation_ = glGetAttribLocation(ProgramId_, "TexCoord"); CheckLocation(TexCoordLocation_, "TexCoord");
+    UseTextureLocation_ = glGetUniformLocation(ProgramId_, "bUseTexture"); CheckLocation(UseTextureLocation_, "bUseTexture");
 }
 
 void ShaderProgram::CheckLocation(GLint Location, const string VarName)

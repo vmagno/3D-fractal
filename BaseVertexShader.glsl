@@ -6,11 +6,16 @@ uniform mat4 ProjMatrix;
 
 layout(location=0) in vec4 Vertex;
 layout(location=1) in vec4 Color;
+layout(location=2) in vec2 TexCoord;
 
-out vec4 OutColor;
+out Attribs {
+    vec4 Color;
+    vec2 TexCoord;
+} AttribsOut;
 
 void main( void )
 {
    gl_Position = ProjMatrix * VisMatrix * ModelMatrix * Vertex;
-   OutColor = Color;
+   AttribsOut.Color = Color;
+   AttribsOut.TexCoord = TexCoord;
 }

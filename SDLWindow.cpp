@@ -80,18 +80,18 @@ void SDLWindow::Draw()
 
     Camera_.SetMatrix(&VisMatrix_);
     SetProjection();
-    //Light_.SetPosition(Camera_.GetPosition() + Camera_.GetDirection());
+//    Light_.SetPosition(Camera_.GetPosition() + Camera_.GetDirection());
 
     for (auto it = SceneObjects_.begin(); it != SceneObjects_.end(); it++)
     {
         (*it)->Draw();
     }
 
-    glColor4f(1.f, 1.f, 1.f, 1.f);
-    glPointSize(20.f);
-    glBegin(GL_POINTS);
-    glVertex3fv((float*)&Light_.GetPosition());
-    glEnd();
+//    glColor4f(1.f, 1.f, 1.f, 1.f);
+//    glPointSize(20.f);
+//    glBegin(GL_POINTS);
+//    glVertex3fv((float*)&Light_.GetPosition());
+//    glEnd();
 
     // Draw HUD
     {
@@ -171,6 +171,12 @@ void SDLWindow::HandleKeyPress(SDL_Keycode Key, bool bPress)
     case SDLK_RIGHT:
         Camera_.SetMoveRight(bPress);
         break;
+    case SDLK_z:
+        if (bPress) Fractal_->MovePlane(1);
+        break;
+    case SDLK_x:
+        if (bPress) Fractal_->MovePlane(-1);
+        break;
     default:
         //cout << "Pressed " << Key << endl;
         break;
@@ -246,7 +252,8 @@ void SDLWindow::InitGL()
 
 void SDLWindow::InitScene()
 {
-    {
+
+    /*{
         DisplayItem* TestObject = new DisplayItem();
 
         float Vertices[] = {
@@ -273,7 +280,8 @@ void SDLWindow::InitScene()
         float4 Color = make_float4(0.f, 1.f, 0.f, 1.f);
 
         TestObject->Init(&PhongShader_, &ProjMatrix_, &VisMatrix_,
-                         (float3*)Vertices, (float3*)Normals, 4, (uint3*)Connect, 4, &Color, 1);
+                         (float3*)Vertices, (float3*)Normals, 4, (uint3*)Connect, 4, &Color, 1,
+                         NULL, NULL);
         SceneObjects_.push_back(TestObject);
 
         DisplayItem* T2 = new DisplayItem();
@@ -286,16 +294,11 @@ void SDLWindow::InitScene()
 
         float4 c2 = make_float4(0.f, 0.f, 1.f, 1.f);
         T2->Init(&BaseShaders_, &ProjMatrix_, &VisMatrix_,
-                 (float3*)v2, (float3*)Normals, 3, (uint3*)Connect, 1, &c2, 1);
+                 (float3*)v2, (float3*)Normals, 3, (uint3*)Connect, 1, &c2, 1,
+                 NULL, NULL);
         SceneObjects_.push_back(T2);
-    }
+    }*/
 
-    {
-        Fractal_ = new FractalObject();
-        Fractal_->Init(&PhongShader_, &ProjMatrix_, &VisMatrix_,
-                          NULL, NULL, 100000, NULL, 100000, NULL, 100000);
-        SceneObjects_.push_back(Fractal_);
-    }
 
     {
         HUD_ = new DisplayItem();
@@ -316,7 +319,27 @@ void SDLWindow::InitScene()
         TransformMatrix* HUDVis = new TransformMatrix();
         HUDVis->LookAt(0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
 
-        HUD_->Init(&BaseShaders_, HUDProj, HUDVis, (float3*)Vertices, NULL, 4, (uint3*)Connect, 2, &Color, 1);
+        SDL_Surface* TexImage = SDL_LoadBMP("color16.bmp");
+
+        float TexCoord[] = {
+            0.f, 1.f,
+            1.f, 1.f,
+            1.f, 0.f,
+            0.f, 0.f
+        };
+
+        HUD_->Init(&BaseShaders_, HUDProj, HUDVis, (float3*)Vertices, NULL, 4, (uint3*)Connect, 2, &Color, 1, TexImage, (float2*)TexCoord);
+
+        {
+            Fractal_ = new FractalObject();
+            Fractal_->Init(&PhongShader_, &ProjMatrix_, &VisMatrix_,
+                           NULL, NULL, 100000, NULL, 1500000, NULL, 100000,
+                           NULL, NULL);
+            //Fractal_->AttachGLTexture(HUD_->GetTextureId(), TexImage->w * TexImage->h * 4 * sizeof(GLubyte));
+            HUD_->SetTexture(Fractal_->GetTextureId());
+            SceneObjects_.push_back(Fractal_);
+        }
+
     }
 
     PhongShader_.SetLightSource(&Light_);
