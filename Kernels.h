@@ -12,4 +12,6 @@ extern void LaunchGenerateTriangles(const KernelParameters& Param, const ArrayPo
 
 extern void LaunchSampleVolume(const KernelParameters& Param, const ArrayPointers& DevicePointers);
 
+extern void LaunchRayMarching(const RayMarchingParam& Param);
+
 #endif // KERNELS_H

@@ -105,6 +105,18 @@ struct KernelParameters
     }
 };
 
+struct RayMarchingParam
+{
+    uint3 NumBlocks; //!< Number of blocks (3D) in kernel launch
+    uint3 BlockSize; //!< Number of threads (3D) in each launched block
+
+    uint* TexCuda; //!< The texture that will contain the result
+    uint2 Size; //!< Size in pixels of the displayed texture
+
+    float3 CameraPos;
+    float3 CameraDir;
+    float3 CameraUp;
+};
 
 
 

@@ -7,6 +7,7 @@
 #include "CudaMath.h"
 #include "DisplayItem.h"
 #include "FractalObject.h"
+#include "RayMarchingTexture.h"
 #include "Util.h"
 
 using namespace std;
@@ -63,6 +64,7 @@ void SDLWindow::Animate()
 {
     Camera_.Move();
     Fractal_->Update();
+    Fractal2_->Update();
 }
 
 void SDLWindow::Draw()
@@ -95,8 +97,8 @@ void SDLWindow::Draw()
 
     // Draw HUD
     {
-        const uint HUDWidth = 256;
-        const uint HUDHeight = 256;
+        const uint HUDWidth = 512;
+        const uint HUDHeight = 512;
         const uint2 HUDPos = make_uint2(0, Height_ - HUDHeight);
         glViewport(HUDPos.x, HUDPos.y, HUDWidth, HUDHeight);
         HUD_->Draw();
@@ -338,6 +340,12 @@ void SDLWindow::InitScene()
             //Fractal_->AttachGLTexture(HUD_->GetTextureId(), TexImage->w * TexImage->h * 4 * sizeof(GLubyte));
             HUD_->SetTexture(Fractal_->GetTextureId());
             SceneObjects_.push_back(Fractal_);
+        }
+
+        {
+            Fractal2_ = new RayMarchingTexture();
+            Fractal2_->Init();
+            HUD_->SetTexture(Fractal2_->GetTextureId());
         }
 
     }

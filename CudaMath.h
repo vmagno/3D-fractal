@@ -1,1 +1,1 @@
-../../mass_spring_test/CudaMath.h
+../MassSpring/CudaMath.h

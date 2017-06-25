@@ -15,7 +15,8 @@ SOURCES += \
     Material.cpp \
     FractalObject.cpp \
     Util.cpp \
-    TexturedItem.cpp
+    TexturedItem.cpp \
+    RayMarchingTexture.cpp
 
 HEADERS += \
     Util.h \
@@ -34,7 +35,8 @@ HEADERS += \
     Kernels.h \
     DeviceUtil.cuh \
     MarchingCubesTables.h \
-    TexturedItem.h
+    TexturedItem.h \
+    RayMarchingTexture.h
 
 unix: LIBS += -lSDL2 \
               -lGLEW \
@@ -46,7 +48,8 @@ DISTFILES += \
     PhongLightingVertexShader.glsl \
     PhongLightingFragmentShader.glsl \
     Bucky.raw \
-    black.bmp
+    black.bmp \
+    Kernels.cu
 
 
 DEPENDPATH += /opt/cuda/lib64
@@ -59,7 +62,7 @@ CUDA_SOURCES += Kernels.cu
 CUDA_DIR = "/opt/cuda"
 CUDA_OBJECTS_DIR = ./
 CUDA_ARCH = compute_30
-CUDA_CODE = sm_52
+CUDA_CODE = sm_61
 
 SYSTEM_TYPE = 64
 

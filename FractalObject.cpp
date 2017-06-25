@@ -197,16 +197,12 @@ void** FractalObject::GetArrayAddress(uint BufferIndex)
     switch (BufferIndex) {
     case VERTEX_VBO_ID:
         return (void**)&DevicePointers_.Vertices;
-        break;
     case NORMAL_VBO_ID:
         return (void**)&DevicePointers_.Normals;
-        break;
     case CONNECT_VBO_ID:
         return (void**)&DevicePointers_.Connectivity;
-        break;
     case COLOR_VBO_ID:
         return (void**)&DevicePointers_.Colors;
-        break;
     default:
         cerr << "[ERROR] Accessing a non-existing buffer (trying to map VBOs to CUDA resources)" << endl;
         break;

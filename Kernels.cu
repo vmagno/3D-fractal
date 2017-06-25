@@ -227,3 +227,54 @@ void LaunchSampleVolume(const KernelParameters &Param, const ArrayPointers &Devi
     SampleVolume<<< Param.NumBlocks, Param.BlockSize >>>(Param, DevicePointers);
     fflush(stdout);
 }
+
+__global__ void RayMarching(RayMarchingParam Param)
+{
+    const uint PixelId = GetGlobalThreadId();
+
+    const uint PixelPosX = PixelId % Param.Size.x;
+    const uint PixelPosY = PixelId / Param.Size.y;
+
+    float3 InitPosition = Param.CameraPos - make_float3(0.5f, 0.f, 0.f);
+//    float3 InitPosition = make_float3((float)PixelPosX - Param.Size.x / 2, (float)PixelPosY - Param.Size.y / 2, -100.f);
+//    float3 InitPosition = make_float3(0.f, 0.f, -20.f);
+    const float Dist = Param.Size.x;
+    const float3 Left = Cross(Param.CameraUp, Param.CameraDir);
+
+    float OffsetX = (float)PixelPosX - Param.Size.x / 2;
+    float OffsetY = (float)PixelPosY - Param.Size.y / 2;
+
+    const float3 Target = InitPosition + Param.CameraDir * Dist + OffsetX * Left + OffsetY * Param.CameraUp;
+    const float3 Direction = Normalize(Target - InitPosition);
+//    const float3 Direction = make_float3(0.f, 0.f, 1.f);
+
+    const float MIN_DIST = 0.005f;
+    const int MAX_STEPS = 20;
+    float TotalDist = 0.f;
+    int steps;
+    for (steps = 0; steps < MAX_STEPS; steps++)
+    {
+        const float3 Position = InitPosition + TotalDist * Direction;
+        const float Distance = fmaxf(Length(Position) - 0.5f, 0.f);
+        TotalDist += Distance;
+        if (Distance < MIN_DIST) break;
+    }
+
+    const float Brightness = 1.f - static_cast<float>(steps) / MAX_STEPS;
+//    const float Brightness = 1.f;
+
+
+    if (PixelId % 2 == 0 )
+    {
+        Param.TexCuda[PixelId] = MakeColor(255 * Brightness, 0, 100 / TotalDist, 0xff);
+    }
+    else
+    {
+        Param.TexCuda[PixelId] = MakeColor(0, 255 * Brightness, 100 / TotalDist, 0xff);
+    }
+}
+
+void LaunchRayMarching(const RayMarchingParam& Param)
+{
+    RayMarching<<< Param.NumBlocks, Param.BlockSize >>>(Param);
+}

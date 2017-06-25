@@ -14,7 +14,11 @@
 
 class DisplayItem;
 class FractalObject;
+class RayMarchingTexture;
 
+/**
+ * @brief The SDLWindow class. Create a window that contains a scene.
+ */
 class SDLWindow
 {
 public:
@@ -50,8 +54,9 @@ private:
     bool bRotateCamera_;
     int PreviousX_, PreviousY_;
 
-    std::vector<DisplayItem*> SceneObjects_;
+    std::vector<DisplayItem*> SceneObjects_; //!< List of scene objects that will be drawn when the window is drawn
     FractalObject* Fractal_;
+    RayMarchingTexture* Fractal2_;
 
     DisplayItem* HUD_;
 
