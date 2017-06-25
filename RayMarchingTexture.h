@@ -3,6 +3,7 @@
 
 #include <GL/glew.h>
 
+#include "BasicTimer.h"
 #include "HostDeviceCode.h"
 
 class RayMarchingTexture
@@ -14,6 +15,7 @@ public:
     void Update();
 
     GLuint GetTextureId() const { return Texture_; }
+    void SetCameraInfo(const float3 Position, const float3 Direction, const float3 Up);
 
 private:
     RayMarchingParam Param_;
@@ -26,6 +28,8 @@ private:
     void InitTexture();
     void MapBuffers();
     void UnmapBuffers();
+
+    BasicTimer MarchTimer_;
 };
 
 #endif // RAYMARCHINGTEXTURE_H

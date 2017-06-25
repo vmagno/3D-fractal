@@ -36,7 +36,8 @@ HEADERS += \
     DeviceUtil.cuh \
     MarchingCubesTables.h \
     TexturedItem.h \
-    RayMarchingTexture.h
+    RayMarchingTexture.h \
+    BasicTimer.h
 
 unix: LIBS += -lSDL2 \
               -lGLEW \

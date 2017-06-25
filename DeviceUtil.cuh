@@ -128,4 +128,10 @@ __device__ uint MakeColor(uchar R, uchar G, uchar B, uchar A)
     return A << 24 | B << 16 | G << 8 | R;
 }
 
+__device__ uint MakeColor(const float3& Col)
+{
+    const float3 Tmp = Normalize(Col);
+    return MakeColor((uchar)(255 * Tmp.x), (uchar)(255 * Tmp.y), (uchar)(255 * Tmp.z), 255);
+}
+
 #endif // DEVICEUTIL_CUH

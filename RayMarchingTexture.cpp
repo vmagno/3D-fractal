@@ -1,15 +1,19 @@
 #include "RayMarchingTexture.h"
 
 #include <cmath>
+#include <iomanip>
+#include <iostream>
 
 #include <cuda_gl_interop.h>
 
 #include "Kernels.h"
 
+using namespace std;
+
 const uint3 DEFAULT_BLOCK_SIZE = make_uint3(256, 1, 1);
 const uint3 DEFAULT_NUM_BLOCKS = make_uint3(0, 0, 0);
 
-const uint2 DEFAULT_SIZE = make_uint2(256, 256);
+const uint2 DEFAULT_SIZE = make_uint2(512, 512);
 const float3 DEFAULT_CAMERA_POSITION = make_float3(0.f, 0.f, -1.f);
 const float3 DEFAULT_CAMERA_DIRECTION = make_float3(0.f, 0.f, 1.f);
 const float3 DEFAULT_CAMERA_UP = make_float3(0.f, 1.f, 0.f);
@@ -45,8 +49,8 @@ void RayMarchingTexture::InitTexture()
     glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &Texture_);
     glBindTexture(GL_TEXTURE_2D, Texture_);
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (int)Param_.Size.x, (int)Param_.Size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -59,11 +63,28 @@ void RayMarchingTexture::InitTexture()
 
 void RayMarchingTexture::Update()
 {
+    MarchTimer_.Start();
     LaunchRayMarching(Param_);
     CudaCheck(cudaDeviceSynchronize());
+    MarchTimer_.Stop();
     MapBuffers();
     CudaCheck(cudaMemcpyToArray(TexArray_, 0, 0, Param_.TexCuda, TexDataSize_, cudaMemcpyDeviceToDevice));
     UnmapBuffers();
+
+    {
+        if (MarchTimer_.GetCount() >= 60)
+        {
+            cout << setprecision(3) << "Average time: " << MarchTimer_.GetAverageTimeMs() << " ms" << endl;
+            MarchTimer_.Reset();
+        }
+    }
+}
+
+void RayMarchingTexture::SetCameraInfo(const float3 Position, const float3 Direction, const float3 Up)
+{
+    Param_.CameraPos = Position;
+    Param_.CameraDir = Direction;
+    Param_.CameraUp = Up;
 }
 
 void RayMarchingTexture::MapBuffers()

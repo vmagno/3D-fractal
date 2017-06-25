@@ -67,9 +67,9 @@ void Camera::Move()
 
 void Camera::Rotate(int Horizontal, int Vertical)
 {
-    glm::vec3 Up(Up_.x, Up_.y, Up_.z);
+    const glm::vec3 Up(Up_.x, Up_.y, Up_.z);
     glm::vec3 Dir(Direction_.x, Direction_.y, Direction_.z);
-    glm::vec3 Left = glm::cross(Up, Dir);
+    const glm::vec3 Left = glm::cross(Up, Dir);
 
     Dir = glm::rotate(Dir, -Horizontal * RotateSpeed_, Up);
     Dir = glm::rotate(Dir, Vertical * RotateSpeed_, Left);

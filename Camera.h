@@ -11,8 +11,9 @@ public:
 
     void SetMatrix(TransformMatrix* Matrix);
 
-    float3 GetPosition() { return Position_; }
-    float3 GetDirection() { return Direction_; }
+    float3 GetPosition() const { return Position_; }
+    float3 GetDirection() const { return Direction_; }
+    float3 GetUp() const { return Up_; }
 
     void Move();
     void SetMoveForward(bool bForward = true) { bMoveForward_ = bForward; }

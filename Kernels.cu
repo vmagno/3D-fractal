@@ -235,16 +235,17 @@ __global__ void RayMarching(RayMarchingParam Param)
     const uint PixelPosX = PixelId % Param.Size.x;
     const uint PixelPosY = PixelId / Param.Size.y;
 
-    float3 InitPosition = Param.CameraPos - make_float3(0.5f, 0.f, 0.f);
+    float3 InitPosition = Param.CameraPos;// - make_float3(0.5f, 0.f, 0.f);
 //    float3 InitPosition = make_float3((float)PixelPosX - Param.Size.x / 2, (float)PixelPosY - Param.Size.y / 2, -100.f);
 //    float3 InitPosition = make_float3(0.f, 0.f, -20.f);
     const float Dist = Param.Size.x;
     const float3 Left = Cross(Param.CameraUp, Param.CameraDir);
+    const float3 RealUp = Cross(Param.CameraDir, Left);
 
-    float OffsetX = (float)PixelPosX - Param.Size.x / 2;
-    float OffsetY = (float)PixelPosY - Param.Size.y / 2;
+    const float OffsetX = (float)PixelPosX - Param.Size.x / 2;
+    const float OffsetY = (float)PixelPosY - Param.Size.y / 2;
 
-    const float3 Target = InitPosition + Param.CameraDir * Dist + OffsetX * Left + OffsetY * Param.CameraUp;
+    const float3 Target = InitPosition + Param.CameraDir * Dist - OffsetX * Left - OffsetY * RealUp; //Param.CameraUp;
     const float3 Direction = Normalize(Target - InitPosition);
 //    const float3 Direction = make_float3(0.f, 0.f, 1.f);
 
@@ -255,7 +256,12 @@ __global__ void RayMarching(RayMarchingParam Param)
     for (steps = 0; steps < MAX_STEPS; steps++)
     {
         const float3 Position = InitPosition + TotalDist * Direction;
-        const float Distance = fmaxf(Length(Position) - 0.5f, 0.f);
+        const float Distance =
+                fminf(
+                    fmaxf(Length(Position - make_float3(1.f, 1.f, 0.f)) - 0.5f, 0.f),
+                    fminf(fmaxf(Length(Position - make_float3(1.f, -1.f, 0.f)) - 0.5f, 0.f),
+                          fmaxf(Length(Position - make_float3(0.f, 0.f, 2.f)) - 0.5f, 0.f))
+                    );
         TotalDist += Distance;
         if (Distance < MIN_DIST) break;
     }
@@ -272,6 +278,11 @@ __global__ void RayMarching(RayMarchingParam Param)
     {
         Param.TexCuda[PixelId] = MakeColor(0, 255 * Brightness, 100 / TotalDist, 0xff);
     }
+
+    // Debug, to see the coordinates
+    //Param.TexCuda[PixelId] = MakeColor(255 * PixelPosX / Param.Size.x, 255 * PixelPosY / Param.Size.y, 0, 0xff);
+//    Param.TexCuda[PixelId] = MakeColor(Direction - Param.CameraDir);
+//    Param.TexCuda[PixelId] = MakeColor(255 * OffsetX *2 / Param.Size.x, 255 * OffsetY * 2/ Param.Size.y, 0, 0xff);
 }
 
 void LaunchRayMarching(const RayMarchingParam& Param)

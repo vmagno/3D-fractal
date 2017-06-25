@@ -64,6 +64,7 @@ void SDLWindow::Animate()
 {
     Camera_.Move();
     Fractal_->Update();
+    Fractal2_->SetCameraInfo(Camera_.GetPosition(), Camera_.GetDirection(), Camera_.GetUp());
     Fractal2_->Update();
 }
 
