@@ -9,6 +9,7 @@
 
 #include "CudaMath.h"
 #include "DeviceUtil.cuh"
+#include "DistanceEstimators.cuh"
 
 __global__ void TestKernel(KernelParameters Param, ArrayPointers DevicePointers)
 {
@@ -249,19 +250,14 @@ __global__ void RayMarching(RayMarchingParam Param)
     const float3 Direction = Normalize(Target - InitPosition);
 //    const float3 Direction = make_float3(0.f, 0.f, 1.f);
 
-    const float MIN_DIST = 0.005f;
-    const int MAX_STEPS = 20;
+    const float MIN_DIST = 0.002f;
+    const int MAX_STEPS = 30;
     float TotalDist = 0.f;
     int steps;
     for (steps = 0; steps < MAX_STEPS; steps++)
     {
         const float3 Position = InitPosition + TotalDist * Direction;
-        const float Distance =
-                fminf(
-                    fmaxf(Length(Position - make_float3(1.f, 1.f, 0.f)) - 0.5f, 0.f),
-                    fminf(fmaxf(Length(Position - make_float3(1.f, -1.f, 0.f)) - 0.5f, 0.f),
-                          fmaxf(Length(Position - make_float3(0.f, 0.f, 2.f)) - 0.5f, 0.f))
-                    );
+        const float Distance = GetDistance<FractalTriangle>(Position);
         TotalDist += Distance;
         if (Distance < MIN_DIST) break;
     }
@@ -270,14 +266,14 @@ __global__ void RayMarching(RayMarchingParam Param)
 //    const float Brightness = 1.f;
 
 
-    if (PixelId % 2 == 0 )
+//    if (PixelId % 2 == 0 )
     {
-        Param.TexCuda[PixelId] = MakeColor(255 * Brightness, 0, 100 / TotalDist, 0xff);
+        Param.TexCuda[PixelId] = MakeColor(255 * Brightness, 0, min(20.f / TotalDist, 255.f), 0xff);
     }
-    else
-    {
-        Param.TexCuda[PixelId] = MakeColor(0, 255 * Brightness, 100 / TotalDist, 0xff);
-    }
+//    else
+//    {
+//        Param.TexCuda[PixelId] = MakeColor(0, 255 * Brightness, 100 / TotalDist, 0xff);
+//    }
 
     // Debug, to see the coordinates
     //Param.TexCuda[PixelId] = MakeColor(255 * PixelPosX / Param.Size.x, 255 * PixelPosY / Param.Size.y, 0, 0xff);

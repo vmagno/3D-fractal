@@ -13,7 +13,7 @@ using namespace std;
 const uint3 DEFAULT_BLOCK_SIZE = make_uint3(256, 1, 1);
 const uint3 DEFAULT_NUM_BLOCKS = make_uint3(0, 0, 0);
 
-const uint2 DEFAULT_SIZE = make_uint2(512, 512);
+const uint2 DEFAULT_SIZE = make_uint2(896, 896);
 const float3 DEFAULT_CAMERA_POSITION = make_float3(0.f, 0.f, -1.f);
 const float3 DEFAULT_CAMERA_DIRECTION = make_float3(0.f, 0.f, 1.f);
 const float3 DEFAULT_CAMERA_UP = make_float3(0.f, 1.f, 0.f);

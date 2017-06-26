@@ -63,7 +63,7 @@ SDLWindow::~SDLWindow()
 void SDLWindow::Animate()
 {
     Camera_.Move();
-    Fractal_->Update();
+//    Fractal_->Update();
     Fractal2_->SetCameraInfo(Camera_.GetPosition(), Camera_.GetDirection(), Camera_.GetUp());
     Fractal2_->Update();
 }
@@ -98,8 +98,8 @@ void SDLWindow::Draw()
 
     // Draw HUD
     {
-        const uint HUDWidth = 512;
-        const uint HUDHeight = 512;
+        const uint HUDWidth = 800;
+        const uint HUDHeight = 800;
         const uint2 HUDPos = make_uint2(0, Height_ - HUDHeight);
         glViewport(HUDPos.x, HUDPos.y, HUDWidth, HUDHeight);
         HUD_->Draw();
@@ -340,7 +340,7 @@ void SDLWindow::InitScene()
                            NULL, NULL);
             //Fractal_->AttachGLTexture(HUD_->GetTextureId(), TexImage->w * TexImage->h * 4 * sizeof(GLubyte));
             HUD_->SetTexture(Fractal_->GetTextureId());
-            SceneObjects_.push_back(Fractal_);
+//            SceneObjects_.push_back(Fractal_);
         }
 
         {

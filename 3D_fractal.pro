@@ -34,6 +34,7 @@ HEADERS += \
     HostDeviceCode.h \
     Kernels.h \
     DeviceUtil.cuh \
+    DistanceEstimators.cuh \
     MarchingCubesTables.h \
     TexturedItem.h \
     RayMarchingTexture.h \
@@ -68,7 +69,7 @@ CUDA_CODE = sm_61
 SYSTEM_TYPE = 64
 
 INCLUDEPATH += $$CUDA_DIR/include
-INCLUDEPATH += $$CUDA_DIR/samples/common/inc
+#INCLUDEPATH += $$CUDA_DIR/samples/common/inc
 
 QMAKE_LIBDIR += $$CUDA_DIR/lib64/
 LIBS += -lcudart
