@@ -16,6 +16,7 @@ public:
 
     GLuint GetTextureId() const { return Texture_; }
     void SetCameraInfo(const float3 Position, const float3 Direction, const float3 Up);
+    float GetDistanceFromCamera();
 
 private:
     RayMarchingParam Param_;

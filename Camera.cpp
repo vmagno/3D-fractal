@@ -8,17 +8,17 @@
 using namespace std;
 
 Camera::Camera()
-    :
-      bMoveForward_(false),
-      bMoveBack_(false),
-      bMoveLeft_(false),
-      bMoveRight_(false),
-      bMoveUp_(false),
-      bMoveDown_(false),
-      bTurnLeft_(false),
-      bTurnRight_(false),
-      MoveSpeed_(0.15f),
-      RotateSpeed_(0.002f)
+    : bMoveForward_(false)
+    , bMoveBack_(false)
+    , bMoveLeft_(false)
+    , bMoveRight_(false)
+    , bMoveUp_(false)
+    , bMoveDown_(false)
+    , bTurnLeft_(false)
+    , bTurnRight_(false)
+    , MoveSpeed_(0.15f)
+    , MoveSpeedFactor_(1.f)
+    , RotateSpeed_(0.002f)
 {
     Position_ = make_float3(0.f, 0.f, 10.f);
     Direction_ = make_float3(0.f, 0.f, -1.f);
@@ -39,29 +39,29 @@ void Camera::Move()
 {
     if (bMoveForward_)
     {
-        Position_ += Direction_ * MoveSpeed_;
+        Position_ += Direction_ * MoveSpeed_ * MoveSpeedFactor_;
     }
     else if (bMoveBack_)
     {
-        Position_ -= Direction_ * MoveSpeed_;
+        Position_ -= Direction_ * MoveSpeed_ * MoveSpeedFactor_;
     }
 
     if (bMoveLeft_)
     {
-        Position_ += Cross(Up_, Direction_) * MoveSpeed_;
+        Position_ += Cross(Up_, Direction_) * MoveSpeed_ * MoveSpeedFactor_;
     }
     else if (bMoveRight_)
     {
-        Position_ -= Cross(Up_, Direction_) * MoveSpeed_;
+        Position_ -= Cross(Up_, Direction_) * MoveSpeed_ * MoveSpeedFactor_;
     }
 
     if (bMoveUp_)
     {
-        Position_ += Up_ * MoveSpeed_;
+        Position_ += Up_ * MoveSpeed_ * MoveSpeedFactor_;
     }
     else if (bMoveDown_)
     {
-        Position_ -= Up_ * MoveSpeed_;
+        Position_ -= Up_ * MoveSpeed_ * MoveSpeedFactor_;
     }
 }
 
@@ -75,4 +75,15 @@ void Camera::Rotate(int Horizontal, int Vertical)
     Dir = glm::rotate(Dir, Vertical * RotateSpeed_, Left);
     Dir = glm::normalize(Dir);
     Direction_ = make_float3(Dir.x, Dir.y, Dir.z);
+}
+
+void Camera::AdjustMoveSpeedFactor(const float Distance)
+{
+    const float MIN_FACTOR = 0.001f;
+    const float MAX_FACTOR = 1.f;
+    float NewFactor = Distance;
+    if (NewFactor > MAX_FACTOR) NewFactor = MAX_FACTOR;
+    if (NewFactor < MIN_FACTOR) NewFactor = MIN_FACTOR;
+
+    MoveSpeedFactor_ = NewFactor;
 }

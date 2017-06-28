@@ -27,6 +27,8 @@ public:
 
     void Rotate(int Horizontal, int Vertical);
 
+    void AdjustMoveSpeedFactor(const float Distance);
+
 private:
     float3 Position_;
     float3 Direction_;
@@ -42,6 +44,7 @@ private:
     bool bTurnRight_;
 
     float MoveSpeed_;
+    float MoveSpeedFactor_;
     float RotateSpeed_;
 };
 

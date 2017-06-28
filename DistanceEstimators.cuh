@@ -4,27 +4,20 @@
 #include "CudaMath.h"
 #include "HostDeviceCode.h"
 
-enum DEType
-{
-    Sphere,
-    TripleSphere,
-    FractalTriangle
-};
-
 template<DEType default_dist>
-__device__ float GetDistance(const float3& Position)
+__host__ __device__ float GetDistance(const float3& Position)
 {
     return fmaxf(Length(Position) - 0.5f, 0.f); // Just a sphere
 }
 
 template<>
-__device__ float GetDistance<Sphere>(const float3& Position)
+__host__ __device__ float GetDistance<Sphere>(const float3& Position)
 {
     return fmaxf(Length(Position) - 0.5f, 0.f);
 }
 
 template<>
-__device__ float GetDistance<TripleSphere>(const float3& Position)
+__host__ __device__ float GetDistance<TripleSphere>(const float3& Position)
 {
     return fminf(fmaxf(Length(Position - make_float3(1.f, 1.f, 0.f)) - 0.5f, 0.f),
                  fminf(fmaxf(Length(Position - make_float3(1.f, -1.f, 0.f)) - 0.5f, 0.f),
@@ -32,7 +25,7 @@ __device__ float GetDistance<TripleSphere>(const float3& Position)
 }
 
 template<>
-__device__ float GetDistance<FractalTriangle>(const float3& Position)
+__host__ __device__ float GetDistance<FractalTriangle>(const float3& Position)
 {
     const float3 a1 = make_float3(1, 1, 1);
     const float3 a2 = make_float3(-1, -1, 1);

@@ -87,6 +87,11 @@ void RayMarchingTexture::SetCameraInfo(const float3 Position, const float3 Direc
     Param_.CameraUp = Up;
 }
 
+float RayMarchingTexture::GetDistanceFromCamera()
+{
+    return GetDistanceFromPos(Param_.CameraPos);
+}
+
 void RayMarchingTexture::MapBuffers()
 {
     if (TexResource_)

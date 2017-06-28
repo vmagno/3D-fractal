@@ -11,6 +11,9 @@
 #include "DeviceUtil.cuh"
 #include "DistanceEstimators.cuh"
 
+const DEType DistFunction = FractalTriangle;
+
+
 __global__ void TestKernel(KernelParameters Param, ArrayPointers DevicePointers)
 {
     uint Tid = GetGlobalThreadId();
@@ -257,7 +260,7 @@ __global__ void RayMarching(RayMarchingParam Param)
     for (steps = 0; steps < MAX_STEPS; steps++)
     {
         const float3 Position = InitPosition + TotalDist * Direction;
-        const float Distance = GetDistance<FractalTriangle>(Position);
+        const float Distance = GetDistance<DistFunction>(Position);
         TotalDist += Distance;
         if (Distance < MIN_DIST) break;
     }
@@ -284,4 +287,9 @@ __global__ void RayMarching(RayMarchingParam Param)
 void LaunchRayMarching(const RayMarchingParam& Param)
 {
     RayMarching<<< Param.NumBlocks, Param.BlockSize >>>(Param);
+}
+
+float GetDistanceFromPos(const float3& Position)
+{
+    return GetDistance<DistFunction>(Position);
 }

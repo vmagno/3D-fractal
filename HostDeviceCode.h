@@ -20,6 +20,13 @@ inline void CudaCallWithCheck(cudaError_t ReturnCode, const char* Filename, int 
     }
 }
 
+enum DEType
+{
+    Sphere,
+    TripleSphere,
+    FractalTriangle
+};
+
 struct ArrayPointers
 {
     float3* Vertices;
@@ -113,9 +120,12 @@ struct RayMarchingParam
     uint* TexCuda; //!< The texture that will contain the result
     uint2 Size; //!< Size in pixels of the displayed texture
 
+    // Camera info
     float3 CameraPos;
     float3 CameraDir;
     float3 CameraUp;
+
+    // Perspective info
 };
 
 

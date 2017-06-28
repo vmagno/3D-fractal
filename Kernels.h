@@ -13,5 +13,6 @@ extern void LaunchGenerateTriangles(const KernelParameters& Param, const ArrayPo
 extern void LaunchSampleVolume(const KernelParameters& Param, const ArrayPointers& DevicePointers);
 
 extern void LaunchRayMarching(const RayMarchingParam& Param);
+extern float GetDistanceFromPos(const float3& Position);
 
 #endif // KERNELS_H
