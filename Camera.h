@@ -46,6 +46,8 @@ private:
     float MoveSpeed_;
     float MoveSpeedFactor_;
     float RotateSpeed_;
+
+    float OldDistance_;
 };
 
 #endif // CAMERA_H

@@ -19,6 +19,7 @@ Camera::Camera()
     , MoveSpeed_(0.15f)
     , MoveSpeedFactor_(1.f)
     , RotateSpeed_(0.002f)
+    , OldDistance_(0.f)
 {
     Position_  = make_float3(0.f, 0.f, 10.f);
     Direction_ = make_float3(0.f, 0.f, -1.f);
@@ -78,9 +79,13 @@ void Camera::Rotate(int Horizontal, int Vertical)
 
 void Camera::AdjustMoveSpeedFactor(const float Distance)
 {
-    const float MIN_FACTOR                = 0.001f;
-    const float MAX_FACTOR                = 1.f;
-    float       NewFactor                 = Distance;
+    const float MIN_FACTOR = 0.001f;
+    const float MAX_FACTOR = 1.f;
+    float       NewFactor  = Distance;
+
+    if (OldDistance_ < Distance) NewFactor *= 2.f;
+    OldDistance_ = Distance;
+
     if (NewFactor > MAX_FACTOR) NewFactor = MAX_FACTOR;
     if (NewFactor < MIN_FACTOR) NewFactor = MIN_FACTOR;
 
