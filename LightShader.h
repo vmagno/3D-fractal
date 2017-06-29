@@ -11,9 +11,10 @@ class Material;
 class LightShader : public ShaderProgram
 {
 public:
-    LightShader() :
-        NormalLocation_(-1)
-    {}
+    LightShader()
+        : NormalLocation_(-1)
+    {
+    }
 
     void RetrieveLocations() override;
     void UseProgram(const DisplayItem* Model) override;
@@ -22,7 +23,7 @@ public:
     void SetMaterial(Material* Material) { Material_ = Material; }
 
     GLint GetNormalLocation() { return NormalLocation_; }
-//    GLint GetNormalMatrixLocation() { return NormalMatrixLocation_; }
+    //    GLint GetNormalMatrixLocation() { return NormalMatrixLocation_; }
 
 private:
     GLint NormalLocation_;
@@ -42,7 +43,7 @@ private:
     GLint MatShininessLocation_;
 
     LightSource* Light_;
-    Material* Material_;
+    Material*    Material_;
 };
 
 #endif // LIGHTSHADER_H

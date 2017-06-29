@@ -17,13 +17,13 @@ public:
 
     void Move();
     void SetMoveForward(bool bForward = true) { bMoveForward_ = bForward; }
-    void SetMoveBack   (bool bBack = true)    { bMoveBack_ = bBack; }
-    void SetMoveLeft   (bool bLeft = true)    { bMoveLeft_ = bLeft; }
-    void SetMoveRight  (bool bRight = true)   { bMoveRight_ = bRight; }
-    void SetMoveUp     (bool bUp = true)      { bMoveUp_ = bUp; }
-    void SetMoveDown   (bool bDown = true)    { bMoveDown_ = bDown; }
-    void SetTurnLeft   (bool bLeft = true)    { bTurnLeft_ = bLeft; }
-    void SetTurnRight  (bool bRight = true)   { bTurnRight_ = bRight; }
+    void SetMoveBack(bool bBack = true) { bMoveBack_ = bBack; }
+    void SetMoveLeft(bool bLeft = true) { bMoveLeft_ = bLeft; }
+    void SetMoveRight(bool bRight = true) { bMoveRight_ = bRight; }
+    void SetMoveUp(bool bUp = true) { bMoveUp_ = bUp; }
+    void SetMoveDown(bool bDown = true) { bMoveDown_ = bDown; }
+    void SetTurnLeft(bool bLeft = true) { bTurnLeft_ = bLeft; }
+    void SetTurnRight(bool bRight = true) { bTurnRight_ = bRight; }
 
     void Rotate(int Horizontal, int Vertical);
 

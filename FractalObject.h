@@ -12,10 +12,9 @@ public:
     ~FractalObject();
 
     void Init(ShaderProgram* Shaders, TransformMatrix* Projection, TransformMatrix* Visualization,
-              const float3* Vertices, const float3* Normals, const uint NumVertices,
-              const uint3* Connectivity, const uint NumElements,
-              const float4* Colors, const uint NumColors,
-              const SDL_Surface* TexImage, const float2* TexCoord) override;
+              const float3* Vertices, const float3* Normals, const uint NumVertices, const uint3* Connectivity,
+              const uint NumElements, const float4* Colors, const uint NumColors, const SDL_Surface* TexImage,
+              const float2* TexCoord) override;
 
     void Update();
 
@@ -27,19 +26,19 @@ private:
     cudaGraphicsResource** CudaVboResources_;
 
     cudaGraphicsResource* TexResource_;
-    cudaArray* TexArray_;
-//    uint* TexCudaTarget_;
+    cudaArray*            TexArray_;
+    //    uint* TexCudaTarget_;
     uint TexDataSize_;
 
     uint MaxTriangles_;
 
     KernelParameters Param_;
-    ArrayPointers DevicePointers_;
+    ArrayPointers    DevicePointers_;
 
-    void InitTexture();
-    void InitCuda();
-    void MapBuffers();
-    void UnmapBuffers();
+    void   InitTexture();
+    void   InitCuda();
+    void   MapBuffers();
+    void   UnmapBuffers();
     void** GetArrayAddress(uint BufferIndex);
     void CreateTextures();
     void LoadVoxels();

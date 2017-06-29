@@ -13,20 +13,32 @@ void LightShader::RetrieveLocations()
 {
     ShaderProgram::RetrieveLocations();
 
-    NormalLocation_ = glGetAttribLocation(ProgramId_, "Normal"); CheckLocation(NormalLocation_, "Normal");
-    NormalMatrixLocation_ = glGetUniformLocation(ProgramId_, "NormalMatrix"); CheckLocation(NormalMatrixLocation_, "NormalMatrix");
+    NormalLocation_ = glGetAttribLocation(ProgramId_, "Normal");
+    CheckLocation(NormalLocation_, "Normal");
+    NormalMatrixLocation_ = glGetUniformLocation(ProgramId_, "NormalMatrix");
+    CheckLocation(NormalMatrixLocation_, "NormalMatrix");
 
-    ModelAmbientLocation_ = glGetUniformLocation(ProgramId_, "LightModelAmbient"); CheckLocation(ModelAmbientLocation_, "LightModelAmbient");
-    LightPosLocation_ = glGetUniformLocation(ProgramId_, "LightPosition"); CheckLocation(LightPosLocation_, "LightPosition");
-    LightAmbientLocation_ = glGetUniformLocation(ProgramId_, "LightAmbient"); CheckLocation(LightAmbientLocation_, "LightAmbient");
-    LightDiffuseLocation_ = glGetUniformLocation(ProgramId_, "LightDiffuse"); CheckLocation(LightDiffuseLocation_, "LightDiffuse");
-    LightSpecularLocation_ = glGetUniformLocation(ProgramId_, "LightSpecular"); CheckLocation(LightSpecularLocation_, "LightSpecular");
+    ModelAmbientLocation_ = glGetUniformLocation(ProgramId_, "LightModelAmbient");
+    CheckLocation(ModelAmbientLocation_, "LightModelAmbient");
+    LightPosLocation_ = glGetUniformLocation(ProgramId_, "LightPosition");
+    CheckLocation(LightPosLocation_, "LightPosition");
+    LightAmbientLocation_ = glGetUniformLocation(ProgramId_, "LightAmbient");
+    CheckLocation(LightAmbientLocation_, "LightAmbient");
+    LightDiffuseLocation_ = glGetUniformLocation(ProgramId_, "LightDiffuse");
+    CheckLocation(LightDiffuseLocation_, "LightDiffuse");
+    LightSpecularLocation_ = glGetUniformLocation(ProgramId_, "LightSpecular");
+    CheckLocation(LightSpecularLocation_, "LightSpecular");
 
-    MatEmissiveLocation_ = glGetUniformLocation(ProgramId_, "MatEmissive"); CheckLocation(MatEmissiveLocation_, "MatEmissive");
-    MatAmbientLocation_ = glGetUniformLocation(ProgramId_, "MatAmbient"); CheckLocation(MatAmbientLocation_, "MatAmbient");
-    MatDiffuseLocation_ = glGetUniformLocation(ProgramId_, "MatDiffuse"); CheckLocation(MatDiffuseLocation_, "MatDiffuse");
-    MatSpecularLocation_ = glGetUniformLocation(ProgramId_, "MatSpecular"); CheckLocation(MatSpecularLocation_, "MatSpecular");
-    MatShininessLocation_ = glGetUniformLocation(ProgramId_, "MatShininess"); CheckLocation(MatShininessLocation_, "MatShininess");
+    MatEmissiveLocation_ = glGetUniformLocation(ProgramId_, "MatEmissive");
+    CheckLocation(MatEmissiveLocation_, "MatEmissive");
+    MatAmbientLocation_ = glGetUniformLocation(ProgramId_, "MatAmbient");
+    CheckLocation(MatAmbientLocation_, "MatAmbient");
+    MatDiffuseLocation_ = glGetUniformLocation(ProgramId_, "MatDiffuse");
+    CheckLocation(MatDiffuseLocation_, "MatDiffuse");
+    MatSpecularLocation_ = glGetUniformLocation(ProgramId_, "MatSpecular");
+    CheckLocation(MatSpecularLocation_, "MatSpecular");
+    MatShininessLocation_ = glGetUniformLocation(ProgramId_, "MatShininess");
+    CheckLocation(MatShininessLocation_, "MatShininess");
 }
 
 void LightShader::UseProgram(const DisplayItem* Model)
@@ -44,6 +56,7 @@ void LightShader::UseProgram(const DisplayItem* Model)
     glUniform4fv(MatSpecularLocation_, 1, (float*)&(Material_->GetSpecular()));
     glUniform1f(MatShininessLocation_, Material_->GetShininess());
 
-    glUniformMatrix3fv(NormalMatrixLocation_, 1, GL_TRUE,
-                       glm::value_ptr( glm::inverse( glm::mat3(Model->GetVisMatrix().GetMatrix() * Model->GetModelMatrix().GetMatrix()) ) ));
+    glUniformMatrix3fv(
+      NormalMatrixLocation_, 1, GL_TRUE,
+      glm::value_ptr(glm::inverse(glm::mat3(Model->GetVisMatrix().GetMatrix() * Model->GetModelMatrix().GetMatrix()))));
 }

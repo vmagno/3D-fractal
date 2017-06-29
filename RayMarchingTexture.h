@@ -22,10 +22,10 @@ public:
 private:
     RayMarchingParam Param_;
 
-    GLuint Texture_; //!< OpenGL texture id
+    GLuint                Texture_;     //!< OpenGL texture id
     cudaGraphicsResource* TexResource_; //!< CUDA reference to the OpenGL texture
-    cudaArray* TexArray_; //!< OpenGl texture data as a CUDA array
-    uint TexDataSize_; //!< Size of the texture data (in bytes)
+    cudaArray*            TexArray_;    //!< OpenGl texture data as a CUDA array
+    uint                  TexDataSize_; //!< Size of the texture data (in bytes)
 
     void InitTexture();
     void MapBuffers();

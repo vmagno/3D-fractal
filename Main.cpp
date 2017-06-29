@@ -16,8 +16,7 @@ int main(int argc, char* argv[])
 
     SDLWindow Window;
 
-
-    while(Window.DoContinue())
+    while (Window.DoContinue())
     {
         Window.HandleEvents();
         Window.Animate();

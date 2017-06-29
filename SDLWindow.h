@@ -31,32 +31,30 @@ public:
     void Draw();
     void HandleEvents();
 
-
-
     void SetProjection();
 
 private:
-    bool bIsValidWindow_;
-    bool bDoContinue_;
-    SDL_Window* Window_;
-    SDL_GLContext Context_;
-    float Width_;
-    float Height_;
+    bool            bIsValidWindow_;
+    bool            bDoContinue_;
+    SDL_Window*     Window_;
+    SDL_GLContext   Context_;
+    float           Width_;
+    float           Height_;
     TransformMatrix ProjMatrix_;
     TransformMatrix VisMatrix_;
-    Camera Camera_;
-    LightSource Light_;
-    Material BaseMaterial_;
+    Camera          Camera_;
+    LightSource     Light_;
+    Material        BaseMaterial_;
 
     ShaderProgram BaseShaders_;
-    LightShader PhongShader_;
+    LightShader   PhongShader_;
 
     bool bRotateCamera_;
-    int PreviousX_, PreviousY_;
+    int  PreviousX_, PreviousY_;
 
     std::vector<DisplayItem*> SceneObjects_; //!< List of scene objects that will be drawn when the window is drawn
-    FractalObject* Fractal_;
-    RayMarchingTexture* Fractal2_;
+    FractalObject*            Fractal_;
+    RayMarchingTexture*       Fractal2_;
 
     DisplayItem* HUD_;
 
@@ -75,7 +73,6 @@ private:
     void InitShaders();
     void InitGL();
     void InitScene();
-
 };
 
 #endif // SDLWINDOW_H

@@ -2,5 +2,4 @@
 
 TexturedItem::TexturedItem()
 {
-
 }

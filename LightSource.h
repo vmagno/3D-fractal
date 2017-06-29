@@ -7,12 +7,12 @@ class LightSource
 {
 public:
     LightSource()
-        :
-          Position_(make_float3(-0.f, 0.f, 5.f)),
-          Ambient_(make_float4(1.f, 1.f, 1.f, 1.f)),
-          Diffuse_(make_float4(1.f, 1.f, 1.f, 1.f)),
-          Specular_(make_float4(1.f, 1.f, 1.f, 1.f))
-    {}
+        : Position_(make_float3(-0.f, 0.f, 5.f))
+        , Ambient_(make_float4(1.f, 1.f, 1.f, 1.f))
+        , Diffuse_(make_float4(1.f, 1.f, 1.f, 1.f))
+        , Specular_(make_float4(1.f, 1.f, 1.f, 1.f))
+    {
+    }
 
     float3& GetPosition() { return Position_; }
     float4& GetAmbient() { return Ambient_; }

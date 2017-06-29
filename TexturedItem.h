@@ -9,7 +9,6 @@ public:
     TexturedItem();
 
 private:
-
 };
 
 #endif // TEXTUREDITEM_H

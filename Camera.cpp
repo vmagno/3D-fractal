@@ -20,19 +20,18 @@ Camera::Camera()
     , MoveSpeedFactor_(1.f)
     , RotateSpeed_(0.002f)
 {
-    Position_ = make_float3(0.f, 0.f, 10.f);
+    Position_  = make_float3(0.f, 0.f, 10.f);
     Direction_ = make_float3(0.f, 0.f, -1.f);
-    Up_ = make_float3(0.f, 1.f, 0.f);
+    Up_        = make_float3(0.f, 1.f, 0.f);
 
     Direction_ = Normalize(Direction_);
-    Up_ = Normalize(Up_);
+    Up_        = Normalize(Up_);
 }
 
 void Camera::SetMatrix(TransformMatrix* Matrix)
 {
-    Matrix->LookAt( Position_.x, Position_.y, Position_.z,
-                    Direction_.x + Position_.x, Direction_.y + Position_.y, Direction_.z + Position_.z,
-                    Up_.x, Up_.y, Up_.z );
+    Matrix->LookAt(Position_.x, Position_.y, Position_.z, Direction_.x + Position_.x, Direction_.y + Position_.y,
+                   Direction_.z + Position_.z, Up_.x, Up_.y, Up_.z);
 }
 
 void Camera::Move()
@@ -68,20 +67,20 @@ void Camera::Move()
 void Camera::Rotate(int Horizontal, int Vertical)
 {
     const glm::vec3 Up(Up_.x, Up_.y, Up_.z);
-    glm::vec3 Dir(Direction_.x, Direction_.y, Direction_.z);
+    glm::vec3       Dir(Direction_.x, Direction_.y, Direction_.z);
     const glm::vec3 Left = glm::cross(Up, Dir);
 
-    Dir = glm::rotate(Dir, -Horizontal * RotateSpeed_, Up);
-    Dir = glm::rotate(Dir, Vertical * RotateSpeed_, Left);
-    Dir = glm::normalize(Dir);
+    Dir        = glm::rotate(Dir, -Horizontal * RotateSpeed_, Up);
+    Dir        = glm::rotate(Dir, Vertical * RotateSpeed_, Left);
+    Dir        = glm::normalize(Dir);
     Direction_ = make_float3(Dir.x, Dir.y, Dir.z);
 }
 
 void Camera::AdjustMoveSpeedFactor(const float Distance)
 {
-    const float MIN_FACTOR = 0.001f;
-    const float MAX_FACTOR = 1.f;
-    float NewFactor = Distance;
+    const float MIN_FACTOR                = 0.001f;
+    const float MAX_FACTOR                = 1.f;
+    float       NewFactor                 = Distance;
     if (NewFactor > MAX_FACTOR) NewFactor = MAX_FACTOR;
     if (NewFactor < MIN_FACTOR) NewFactor = MIN_FACTOR;
 

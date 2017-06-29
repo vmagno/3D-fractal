@@ -13,7 +13,7 @@
 class Util
 {
 public:
-    static void LogSDLError(std::ostream &OutStream, const std::string &Message);
+    static void LogSDLError(std::ostream& OutStream, const std::string& Message);
     static void DumpDeviceArray(uint* DeviceArray, uint3 Dimension, std::string Filename);
 
     /**
@@ -21,7 +21,6 @@ public:
      * @param Filename
      */
     static GLuint LoadBMP(const char* Filename);
-
 };
 
 #endif // UTIL_H

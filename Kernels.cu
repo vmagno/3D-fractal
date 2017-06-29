@@ -13,41 +13,39 @@
 
 const DEType DistFunction = FractalTriangle;
 
-
 __global__ void TestKernel(KernelParameters Param, ArrayPointers DevicePointers)
 {
     uint Tid = GetGlobalThreadId();
 
     if (Tid >= 4) return;
 
-    switch(Tid)
+    switch (Tid)
     {
     case 0:
-        DevicePointers.Vertices[0] = make_float3(-2.f, 0.f, 0.f);
+        DevicePointers.Vertices[0]     = make_float3(-2.f, 0.f, 0.f);
         DevicePointers.Connectivity[0] = make_uint3(0, 1, 2);
-        DevicePointers.Normals[0] = make_float3(-1.f, 0.f, -0.1f);
-        DevicePointers.Colors[0] = make_float4(1.f, 0.f, 0.f, 1.f);
+        DevicePointers.Normals[0]      = make_float3(-1.f, 0.f, -0.1f);
+        DevicePointers.Colors[0]       = make_float4(1.f, 0.f, 0.f, 1.f);
         break;
     case 1:
-        DevicePointers.Vertices[1] = make_float3(-1.f, 0.f, 0.f);
+        DevicePointers.Vertices[1]     = make_float3(-1.f, 0.f, 0.f);
         DevicePointers.Connectivity[1] = make_uint3(0, 1, 3);
-        DevicePointers.Normals[1] = make_float3(1.f, 0.f, -0.1f);
-        DevicePointers.Colors[1] = make_float4(0.f, 1.f, 0.f, 1.f);
+        DevicePointers.Normals[1]      = make_float3(1.f, 0.f, -0.1f);
+        DevicePointers.Colors[1]       = make_float4(0.f, 1.f, 0.f, 1.f);
         break;
     case 2:
-        DevicePointers.Vertices[2] = make_float3(-2.f, 1.f, 0.f);
+        DevicePointers.Vertices[2]     = make_float3(-2.f, 1.f, 0.f);
         DevicePointers.Connectivity[2] = make_uint3(1, 2, 3);
-        DevicePointers.Normals[2] = make_float3(0.f, 1.f, -0.1f);
-        DevicePointers.Colors[2] = make_float4(0.f, 0.f, 1.f, 1.f);
+        DevicePointers.Normals[2]      = make_float3(0.f, 1.f, -0.1f);
+        DevicePointers.Colors[2]       = make_float4(0.f, 0.f, 1.f, 1.f);
         break;
     case 3:
-        DevicePointers.Vertices[3] = make_float3(-1.5f, 0.5f, 1.f);
+        DevicePointers.Vertices[3]     = make_float3(-1.5f, 0.5f, 1.f);
         DevicePointers.Connectivity[3] = make_uint3(2, 0, 3);
-        DevicePointers.Normals[3] = make_float3(-.1f, 0.f, 1.f);
-        DevicePointers.Colors[3] = make_float4(1.f, 1.f, 1.f, 1.f);
+        DevicePointers.Normals[3]      = make_float3(-.1f, 0.f, 1.f);
+        DevicePointers.Colors[3]       = make_float4(1.f, 1.f, 1.f, 1.f);
         break;
-    default:
-        break;
+    default: break;
     }
 }
 
@@ -81,10 +79,10 @@ __global__ void ClassifyVoxels(KernelParameters Param, ArrayPointers DevicePoint
     if (VoxelLocation.z == Param.ZSlice)
     {
         float Val = CellValues[0]; //(VoxelLocation.x + VoxelLocation.y) / (31.f + 31.f);
-        DevicePointers.TexCudaTarget[(Param.VoxelGridSize.y - VoxelLocation.y - 1) * Param.VoxelGridSize.x + VoxelLocation.x] =
-                MakeColor(Val * 255, 0, 255 - uint(Val * 255 ) / 32 * 31.874, 0xff);
+        DevicePointers
+          .TexCudaTarget[(Param.VoxelGridSize.y - VoxelLocation.y - 1) * Param.VoxelGridSize.x + VoxelLocation.x] =
+          MakeColor(Val * 255, 0, 255 - uint(Val * 255) / 32 * 31.874, 0xff);
     }
-
 
     // Compute cell index
     uint CellId = 0;
@@ -99,10 +97,9 @@ __global__ void ClassifyVoxels(KernelParameters Param, ArrayPointers DevicePoint
 
 void LaunchClassifyVoxel(const KernelParameters& Param, const ArrayPointers& DevicePointers)
 {
-    ClassifyVoxels<<< Param.NumBlocks, Param.BlockSize >>>(Param, DevicePointers);
+    ClassifyVoxels<<<Param.NumBlocks, Param.BlockSize>>>(Param, DevicePointers);
     fflush(stdout);
 }
-
 
 void LaunchThrustScan(KernelParameters Param, ArrayPointers DevicePointers)
 {
@@ -121,16 +118,16 @@ __global__ void GenerateTriangles(KernelParameters Param, ArrayPointers DevicePo
 
     // Compute cube vertices
     float3 Positions[8];
-    Positions[0] = Param.MinPosition + make_float3(VoxelLocation.x * Param.VoxelSize.x,
-                                                   VoxelLocation.y * Param.VoxelSize.y,
-                                                   VoxelLocation.z * Param.VoxelSize.z);
-    Positions[1] = Positions[0] + make_float3(Param.VoxelSize.x, 0.f,               0.f);
+    Positions[0] =
+      Param.MinPosition + make_float3(VoxelLocation.x * Param.VoxelSize.x, VoxelLocation.y * Param.VoxelSize.y,
+                                      VoxelLocation.z * Param.VoxelSize.z);
+    Positions[1] = Positions[0] + make_float3(Param.VoxelSize.x, 0.f, 0.f);
     Positions[2] = Positions[0] + make_float3(Param.VoxelSize.x, Param.VoxelSize.y, 0.f);
-    Positions[3] = Positions[0] + make_float3(0.f,               Param.VoxelSize.y, 0.f);
-    Positions[4] = Positions[0] + make_float3(0.f,               0.f,               Param.VoxelSize.z);
-    Positions[5] = Positions[0] + make_float3(Param.VoxelSize.x, 0.f,               Param.VoxelSize.z);
+    Positions[3] = Positions[0] + make_float3(0.f, Param.VoxelSize.y, 0.f);
+    Positions[4] = Positions[0] + make_float3(0.f, 0.f, Param.VoxelSize.z);
+    Positions[5] = Positions[0] + make_float3(Param.VoxelSize.x, 0.f, Param.VoxelSize.z);
     Positions[6] = Positions[0] + make_float3(Param.VoxelSize.x, Param.VoxelSize.y, Param.VoxelSize.z);
-    Positions[7] = Positions[0] + make_float3(0.f,               Param.VoxelSize.y, Param.VoxelSize.z);
+    Positions[7] = Positions[0] + make_float3(0.f, Param.VoxelSize.y, Param.VoxelSize.z);
 
     // Retrieve cell values
     float CellValues[8];
@@ -152,15 +149,15 @@ __global__ void GenerateTriangles(KernelParameters Param, ArrayPointers DevicePo
 
     // Compute interpolated vertex positions
     float3 CellVertices[12];
-    CellVertices[0]  = InterpolateVertex(Positions[0], Positions[1], CellValues[0], CellValues[1], Param.Threshold);
-    CellVertices[1]  = InterpolateVertex(Positions[1], Positions[2], CellValues[1], CellValues[2], Param.Threshold);
-    CellVertices[2]  = InterpolateVertex(Positions[2], Positions[3], CellValues[2], CellValues[3], Param.Threshold);
-    CellVertices[3]  = InterpolateVertex(Positions[3], Positions[0], CellValues[3], CellValues[0], Param.Threshold);
+    CellVertices[0] = InterpolateVertex(Positions[0], Positions[1], CellValues[0], CellValues[1], Param.Threshold);
+    CellVertices[1] = InterpolateVertex(Positions[1], Positions[2], CellValues[1], CellValues[2], Param.Threshold);
+    CellVertices[2] = InterpolateVertex(Positions[2], Positions[3], CellValues[2], CellValues[3], Param.Threshold);
+    CellVertices[3] = InterpolateVertex(Positions[3], Positions[0], CellValues[3], CellValues[0], Param.Threshold);
 
-    CellVertices[4]  = InterpolateVertex(Positions[4], Positions[5], CellValues[4], CellValues[5], Param.Threshold);
-    CellVertices[5]  = InterpolateVertex(Positions[5], Positions[6], CellValues[5], CellValues[6], Param.Threshold);
-    CellVertices[6]  = InterpolateVertex(Positions[6], Positions[7], CellValues[6], CellValues[7], Param.Threshold);
-    CellVertices[7]  = InterpolateVertex(Positions[7], Positions[4], CellValues[7], CellValues[4], Param.Threshold);
+    CellVertices[4] = InterpolateVertex(Positions[4], Positions[5], CellValues[4], CellValues[5], Param.Threshold);
+    CellVertices[5] = InterpolateVertex(Positions[5], Positions[6], CellValues[5], CellValues[6], Param.Threshold);
+    CellVertices[6] = InterpolateVertex(Positions[6], Positions[7], CellValues[6], CellValues[7], Param.Threshold);
+    CellVertices[7] = InterpolateVertex(Positions[7], Positions[4], CellValues[7], CellValues[4], Param.Threshold);
 
     CellVertices[8]  = InterpolateVertex(Positions[0], Positions[4], CellValues[0], CellValues[4], Param.Threshold);
     CellVertices[9]  = InterpolateVertex(Positions[1], Positions[5], CellValues[1], CellValues[5], Param.Threshold);
@@ -177,7 +174,7 @@ __global__ void GenerateTriangles(KernelParameters Param, ArrayPointers DevicePo
         float3* TriangleVertices[3];
         for (int j = 0; j < 3; j++)
         {
-            uint Edge = tex1Dfetch<uint>(DevicePointers.TriangleTableTex, CellId*16 + iVert + j);
+            uint Edge           = tex1Dfetch<uint>(DevicePointers.TriangleTableTex, CellId * 16 + iVert + j);
             TriangleVertices[j] = &CellVertices[Edge];
         }
 
@@ -193,7 +190,7 @@ __global__ void GenerateTriangles(KernelParameters Param, ArrayPointers DevicePo
             DevicePointers.Normals[Index + 1] = Normal;
             DevicePointers.Normals[Index + 2] = Normal;
 
-            DevicePointers.Connectivity[Index/3] = make_uint3(Index, Index + 1, Index + 2);
+            DevicePointers.Connectivity[Index / 3] = make_uint3(Index, Index + 1, Index + 2);
 
             DevicePointers.Colors[Index]     = make_float4(1.f);
             DevicePointers.Colors[Index + 1] = make_float4(1.f);
@@ -204,7 +201,7 @@ __global__ void GenerateTriangles(KernelParameters Param, ArrayPointers DevicePo
 
 void LaunchGenerateTriangles(const KernelParameters& Param, const ArrayPointers& DevicePointers)
 {
-    GenerateTriangles<<< Param.NumBlocks, Param.BlockSize >>>(Param, DevicePointers);
+    GenerateTriangles<<<Param.NumBlocks, Param.BlockSize>>>(Param, DevicePointers);
     fflush(stdout);
 }
 
@@ -214,7 +211,7 @@ __global__ void SampleVolume(KernelParameters Param, ArrayPointers DevicePointer
 
     if (VoxelId >= Param.NumVoxels) return;
 
-    const uint3 VoxelLocation = GetVoxelLocation(Param, VoxelId);
+    const uint3  VoxelLocation = GetVoxelLocation(Param, VoxelId);
     const float3 VoxelPosition = Param.MinPosition + (make_float3(VoxelLocation) * Param.VoxelSize);
 
     float NewValue = 0.f;
@@ -226,9 +223,9 @@ __global__ void SampleVolume(KernelParameters Param, ArrayPointers DevicePointer
     SetVoxelValue(NewValue, VoxelId, DevicePointers);
 }
 
-void LaunchSampleVolume(const KernelParameters &Param, const ArrayPointers &DevicePointers)
+void LaunchSampleVolume(const KernelParameters& Param, const ArrayPointers& DevicePointers)
 {
-    SampleVolume<<< Param.NumBlocks, Param.BlockSize >>>(Param, DevicePointers);
+    SampleVolume<<<Param.NumBlocks, Param.BlockSize>>>(Param, DevicePointers);
     fflush(stdout);
 }
 
@@ -239,54 +236,54 @@ __global__ void RayMarching(RayMarchingParam Param)
     const uint PixelPosX = PixelId % Param.Size.x;
     const uint PixelPosY = PixelId / Param.Size.y;
 
-    float3 InitPosition = Param.CameraPos;// - make_float3(0.5f, 0.f, 0.f);
-//    float3 InitPosition = make_float3((float)PixelPosX - Param.Size.x / 2, (float)PixelPosY - Param.Size.y / 2, -100.f);
-//    float3 InitPosition = make_float3(0.f, 0.f, -20.f);
-    const float Dist = Param.Depth;
-    const float3 Left = Cross(Param.CameraUp, Param.CameraDir);
+    float3 InitPosition = Param.CameraPos; // - make_float3(0.5f, 0.f, 0.f);
+    //    float3 InitPosition = make_float3((float)PixelPosX - Param.Size.x / 2, (float)PixelPosY - Param.Size.y / 2,
+    //    -100.f);
+    //    float3 InitPosition = make_float3(0.f, 0.f, -20.f);
+    const float  Dist   = Param.Depth;
+    const float3 Left   = Cross(Param.CameraUp, Param.CameraDir);
     const float3 RealUp = Cross(Param.CameraDir, Left);
 
     const float OffsetX = ((float)PixelPosX - Param.Size.x / 2) / Param.Size.x * Param.Width;
     const float OffsetY = ((float)PixelPosY - Param.Size.y / 2) / Param.Size.y * Param.Height;
 
-    const float3 Target = InitPosition + Param.CameraDir * Dist - OffsetX * Left - OffsetY * RealUp; //Param.CameraUp;
+    const float3 Target = InitPosition + Param.CameraDir * Dist - OffsetX * Left - OffsetY * RealUp; // Param.CameraUp;
     const float3 Direction = Normalize(Target - InitPosition);
-//    const float3 Direction = make_float3(0.f, 0.f, 1.f);
+    //    const float3 Direction = make_float3(0.f, 0.f, 1.f);
 
-    const float MIN_DIST = 0.002f;
-    const int MAX_STEPS = 30;
-    float TotalDist = 0.f;
-    int steps;
+    const float MIN_DIST  = 0.002f;
+    const int   MAX_STEPS = 30;
+    float       TotalDist = 0.f;
+    int         steps;
     for (steps = 0; steps < MAX_STEPS; steps++)
     {
         const float3 Position = InitPosition + TotalDist * Direction;
-        const float Distance = GetDistance<DistFunction>(Position);
+        const float  Distance = GetDistance<DistFunction>(Position);
         TotalDist += Distance;
         if (Distance < MIN_DIST) break;
     }
 
     const float Brightness = 1.f - static_cast<float>(steps) / MAX_STEPS;
-//    const float Brightness = 1.f;
+    //    const float Brightness = 1.f;
 
-
-//    if (PixelId % 2 == 0 )
+    //    if (PixelId % 2 == 0 )
     {
         Param.TexCuda[PixelId] = MakeColor(255 * Brightness, 0, min(20.f / TotalDist, 255.f), 0xff);
     }
-//    else
-//    {
-//        Param.TexCuda[PixelId] = MakeColor(0, 255 * Brightness, 100 / TotalDist, 0xff);
-//    }
+    //    else
+    //    {
+    //        Param.TexCuda[PixelId] = MakeColor(0, 255 * Brightness, 100 / TotalDist, 0xff);
+    //    }
 
     // Debug, to see the coordinates
-    //Param.TexCuda[PixelId] = MakeColor(255 * PixelPosX / Param.Size.x, 255 * PixelPosY / Param.Size.y, 0, 0xff);
-//    Param.TexCuda[PixelId] = MakeColor(Direction - Param.CameraDir);
-//    Param.TexCuda[PixelId] = MakeColor(255 * OffsetX *2 / Param.Size.x, 255 * OffsetY * 2/ Param.Size.y, 0, 0xff);
+    // Param.TexCuda[PixelId] = MakeColor(255 * PixelPosX / Param.Size.x, 255 * PixelPosY / Param.Size.y, 0, 0xff);
+    //    Param.TexCuda[PixelId] = MakeColor(Direction - Param.CameraDir);
+    //    Param.TexCuda[PixelId] = MakeColor(255 * OffsetX *2 / Param.Size.x, 255 * OffsetY * 2/ Param.Size.y, 0, 0xff);
 }
 
 void LaunchRayMarching(const RayMarchingParam& Param)
 {
-    RayMarching<<< Param.NumBlocks, Param.BlockSize >>>(Param);
+    RayMarching<<<Param.NumBlocks, Param.BlockSize>>>(Param);
 }
 
 float GetDistanceFromPos(const float3& Position)
