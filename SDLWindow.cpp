@@ -101,9 +101,9 @@ void SDLWindow::Draw()
 
     // Draw HUD
     {
-        const uint  HUDWidth  = Width_;
-        const uint  HUDHeight = Height_;
-        const uint2 HUDPos    = make_uint2(0, Height_ - HUDHeight);
+        const int  HUDWidth  = (int)Width_;
+        const int  HUDHeight = (int)Height_;
+        const int2 HUDPos    = make_int2(0, (int)Height_ - HUDHeight);
         glViewport(HUDPos.x, HUDPos.y, HUDWidth, HUDHeight);
         HUD_->Draw();
     }
@@ -119,8 +119,8 @@ void SDLWindow::HandleEvents()
         switch (Event.type)
         {
         case SDL_QUIT: bDoContinue_ = false; break;
-        case SDL_KEYDOWN:
-        case SDL_KEYUP: HandleKeyPress(Event.key.keysym.sym, (Event.type == SDL_KEYDOWN)); break;
+        case SDL_KEYUP:
+        case SDL_KEYDOWN: HandleKeyPress(Event.key.keysym.sym, (Event.type == SDL_KEYDOWN)); break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
             HandleMouseClick(Event.button.button, Event.button.state, Event.button.x, Event.button.y);
@@ -158,12 +158,17 @@ void SDLWindow::HandleKeyPress(SDL_Keycode Key, bool bPress)
     case SDLK_PAGEDOWN: Camera_.SetMoveDown(bPress); break;
     case SDLK_d:
     case SDLK_RIGHT: Camera_.SetMoveRight(bPress); break;
+    case SDLK_t: Fractal2_->IncreaseMaxSteps(); Fractal2_->PrintMarchingParam(); break;
+    case SDLK_g: Fractal2_->DecreaseMaxSteps(); Fractal2_->PrintMarchingParam(); break;
+    case SDLK_y: Fractal2_->IncreaseMinDist(); Fractal2_->PrintMarchingParam(); break;
+    case SDLK_h: Fractal2_->DecreaseMinDist(); Fractal2_->PrintMarchingParam(); break;
     case SDLK_z:
         if (bPress) Fractal_->MovePlane(1);
         break;
     case SDLK_x:
         if (bPress) Fractal_->MovePlane(-1);
         break;
+    case SDLK_p: Fractal2_->PrintMarchingParam(); break;
     default:
         // cout << "Pressed " << Key << endl;
         break;

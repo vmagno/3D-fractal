@@ -251,34 +251,19 @@ __global__ void RayMarching(RayMarchingParam Param)
     const float3 Direction = Normalize(Target - InitPosition);
     //    const float3 Direction = make_float3(0.f, 0.f, 1.f);
 
-    const float MIN_DIST  = 0.002f;
-    const int   MAX_STEPS = 30;
     float       TotalDist = 0.f;
     int         steps;
-    for (steps = 0; steps < MAX_STEPS; steps++)
+    for (steps = 0; steps < Param.MaxSteps; steps++)
     {
         const float3 Position = InitPosition + TotalDist * Direction;
         const float  Distance = GetDistance<DistFunction>(Position);
         TotalDist += Distance;
-        if (Distance < MIN_DIST) break;
+        if (Distance < Param.MinDistance) break;
     }
 
-    const float Brightness = 1.f - static_cast<float>(steps) / MAX_STEPS;
-    //    const float Brightness = 1.f;
+    const float Brightness = 1.f - static_cast<float>(steps) / Param.MaxSteps;
 
-    //    if (PixelId % 2 == 0 )
-    {
-        Param.TexCuda[PixelId] = MakeColor(255 * Brightness, 0, min(20.f / TotalDist, 255.f), 0xff);
-    }
-    //    else
-    //    {
-    //        Param.TexCuda[PixelId] = MakeColor(0, 255 * Brightness, 100 / TotalDist, 0xff);
-    //    }
-
-    // Debug, to see the coordinates
-    // Param.TexCuda[PixelId] = MakeColor(255 * PixelPosX / Param.Size.x, 255 * PixelPosY / Param.Size.y, 0, 0xff);
-    //    Param.TexCuda[PixelId] = MakeColor(Direction - Param.CameraDir);
-    //    Param.TexCuda[PixelId] = MakeColor(255 * OffsetX *2 / Param.Size.x, 255 * OffsetY * 2/ Param.Size.y, 0, 0xff);
+    Param.TexCuda[PixelId] = MakeColor(255 * Brightness, 0, 0, 0xff);
 }
 
 void LaunchRayMarching(const RayMarchingParam& Param)

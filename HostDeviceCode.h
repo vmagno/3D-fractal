@@ -126,6 +126,11 @@ struct RayMarchingParam
     float Depth;
     float Width;
     float Height;
+
+    // Ray marching iteration parameters
+    float DistanceRatio;
+    float MinDistance;
+    uint MaxSteps;
 };
 
 #endif // HOSTDEVICECODE_H

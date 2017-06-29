@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 
 #include <cuda_gl_interop.h>
 
@@ -22,6 +23,11 @@ const float DEFAULT_DEPTH  = 300.f;
 const float DEFAULT_WIDTH  = 300.f;
 const float DEFAULT_HEIGHT = 300.f;
 
+const float DEFAULT_DISTANCE_RATIO = 0.002f;
+const uint  DEFAULT_MAX_STEPS      = 20;
+
+const float INC_FACTOR = 1.1f;
+
 RayMarchingTexture::RayMarchingTexture()
     : Texture_(0)
     , TexResource_(nullptr)
@@ -40,6 +46,10 @@ RayMarchingTexture::RayMarchingTexture()
     Param_.Depth  = DEFAULT_DEPTH;
     Param_.Width  = DEFAULT_WIDTH;
     Param_.Height = DEFAULT_HEIGHT;
+
+    Param_.DistanceRatio = DEFAULT_DISTANCE_RATIO;
+    Param_.MinDistance = Param_.DistanceRatio;
+    Param_.MaxSteps    = DEFAULT_MAX_STEPS;
 }
 
 void RayMarchingTexture::Init()
@@ -71,6 +81,9 @@ void RayMarchingTexture::InitTexture()
 
 void RayMarchingTexture::Update()
 {
+
+    Param_.MinDistance = Param_.DistanceRatio * fminf(GetDistanceFromCamera(), 1.f);
+
     MarchTimer_.Start();
     LaunchRayMarching(Param_);
     CudaCheck(cudaDeviceSynchronize());
@@ -105,6 +118,31 @@ void RayMarchingTexture::SetPerspective(float FOVy, float AspectRatio, float /*z
     Param_.Depth  = zFar;
     Param_.Height = tanf(FOVy * 3.14159265f / 180.f / 2.f) * Param_.Depth * 2.f;
     Param_.Width  = Param_.Height * AspectRatio;
+}
+
+void RayMarchingTexture::IncreaseMaxSteps()
+{
+    if (Param_.MaxSteps < numeric_limits<int>::max()) Param_.MaxSteps++;
+}
+
+void RayMarchingTexture::DecreaseMaxSteps()
+{
+    if (Param_.MaxSteps > 1) Param_.MaxSteps--;
+}
+
+void RayMarchingTexture::IncreaseMinDist()
+{
+    if (Param_.DistanceRatio < numeric_limits<float>::max() / (INC_FACTOR + 1.f)) Param_.DistanceRatio *= INC_FACTOR;
+}
+
+void RayMarchingTexture::DecreaseMinDist()
+{
+    if (Param_.DistanceRatio > 0.f) Param_.DistanceRatio *= 1.f / INC_FACTOR;
+}
+
+void RayMarchingTexture::PrintMarchingParam()
+{
+    cout << "Min distance = " << Param_.MinDistance << endl << "Max steps = " << Param_.MaxSteps << endl;
 }
 
 void RayMarchingTexture::MapBuffers()

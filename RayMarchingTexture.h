@@ -19,6 +19,13 @@ public:
     float GetDistanceFromCamera();
     void SetPerspective(float FOVy, float AspectRatio, float zNear, float zFar);
 
+    void IncreaseMaxSteps();
+    void DecreaseMaxSteps();
+    void IncreaseMinDist();
+    void DecreaseMinDist();
+
+    void PrintMarchingParam();
+
 private:
     RayMarchingParam Param_;
 
