@@ -24,19 +24,25 @@ __host__ __device__ float GetDistance<TripleSphere>(const float3& Position)
                        fmaxf(Length(Position - make_float3(0.f, 0.f, 2.f)) - 0.5f, 0.f)));
 }
 
+/**
+ *  This estimator was taken and adapted from
+ * 		http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
+ */
 template <>
 __host__ __device__ float GetDistance<FractalTriangle>(const float3& Position)
 {
-    const float3 a1 = make_float3(1, 1, 1);
-    const float3 a2 = make_float3(-1, -1, 1);
-    const float3 a3 = make_float3(1, -1, -1);
-    const float3 a4 = make_float3(-1, 1, -1);
-    float3       z  = Position;
-    float3       c;
-    int          n = 0;
-    float        dist, d;
+    const float3 a1             = make_float3(1, 1, 1);
+    const float3 a2             = make_float3(-1, -1, 1);
+    const float3 a3             = make_float3(1, -1, -1);
+    const float3 a4             = make_float3(-1, 1, -1);
     const int    NUM_ITERATIONS = 20;
     const float  SCALE          = 2.0f;
+
+    float3 z = Position;
+    int    n = 0;
+    float3 c;
+    float  dist, d;
+
     while (n < NUM_ITERATIONS)
     {
         c    = a1;
