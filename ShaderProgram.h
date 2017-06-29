@@ -52,8 +52,6 @@ private:
     GLint TexCoordLocation_;
     GLint UseTextureLocation_;
 
-    bool dummy;
-
     GLint ProjMatrixLocation_;
     GLint VisMatrixLocation_;
     GLint ModelMatrixLocation_;

@@ -12,6 +12,10 @@
 
 using namespace std;
 
+const float FOVy = 35.f;
+const float zNear = 0.1f;
+const float zFar = 300.f;
+
 SDLWindow::SDLWindow()
     :
       bIsValidWindow_(false),
@@ -99,8 +103,8 @@ void SDLWindow::Draw()
 
     // Draw HUD
     {
-        const uint HUDWidth = 800;
-        const uint HUDHeight = 800;
+        const uint HUDWidth = Width_;
+        const uint HUDHeight = Height_;
         const uint2 HUDPos = make_uint2(0, Height_ - HUDHeight);
         glViewport(HUDPos.x, HUDPos.y, HUDWidth, HUDHeight);
         HUD_->Draw();
@@ -229,12 +233,13 @@ void SDLWindow::ResizeWindow(int NewX, int NewY)
 {
     Width_ = NewX;
     Height_ = NewY;
-    glViewport(0, 0, Width_, Height_);
+    glViewport(0, 0, (int)Width_, (int)Height_);
 }
 
 void SDLWindow::SetProjection()
 {
-    ProjMatrix_.Perspective( 35.f, Width_ / Height_, 0.1f, 300.f );
+    ProjMatrix_.Perspective(FOVy, Width_ / Height_, zNear, zFar);
+    Fractal2_->SetPerspective(FOVy, Width_ / Height_, zNear, zFar);
 }
 
 void SDLWindow::InitShaders()

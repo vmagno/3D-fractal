@@ -18,6 +18,10 @@ const float3 DEFAULT_CAMERA_POSITION = make_float3(0.f, 0.f, -1.f);
 const float3 DEFAULT_CAMERA_DIRECTION = make_float3(0.f, 0.f, 1.f);
 const float3 DEFAULT_CAMERA_UP = make_float3(0.f, 1.f, 0.f);
 
+const float DEFAULT_DEPTH = 300.f;
+const float DEFAULT_WIDTH = 300.f;
+const float DEFAULT_HEIGHT = 300.f;
+
 RayMarchingTexture::RayMarchingTexture()
     : Texture_(0)
     , TexResource_(nullptr)
@@ -32,6 +36,10 @@ RayMarchingTexture::RayMarchingTexture()
     Param_.CameraPos = DEFAULT_CAMERA_POSITION;
     Param_.CameraDir = DEFAULT_CAMERA_DIRECTION;
     Param_.CameraUp = DEFAULT_CAMERA_UP;
+
+    Param_.Depth = DEFAULT_DEPTH;
+    Param_.Width = DEFAULT_WIDTH;
+    Param_.Height = DEFAULT_HEIGHT;
 }
 
 void RayMarchingTexture::Init()
@@ -90,6 +98,13 @@ void RayMarchingTexture::SetCameraInfo(const float3 Position, const float3 Direc
 float RayMarchingTexture::GetDistanceFromCamera()
 {
     return GetDistanceFromPos(Param_.CameraPos);
+}
+
+void RayMarchingTexture::SetPerspective(float FOVy, float AspectRatio, float /*zNear*/, float zFar)
+{
+   Param_.Depth = zFar;
+   Param_.Height = tanf(FOVy * 3.14159265f / 180.f / 2.f) * Param_.Depth * 2.f;
+   Param_.Width = Param_.Height * AspectRatio;
 }
 
 void RayMarchingTexture::MapBuffers()

@@ -242,12 +242,12 @@ __global__ void RayMarching(RayMarchingParam Param)
     float3 InitPosition = Param.CameraPos;// - make_float3(0.5f, 0.f, 0.f);
 //    float3 InitPosition = make_float3((float)PixelPosX - Param.Size.x / 2, (float)PixelPosY - Param.Size.y / 2, -100.f);
 //    float3 InitPosition = make_float3(0.f, 0.f, -20.f);
-    const float Dist = Param.Size.x;
+    const float Dist = Param.Depth;
     const float3 Left = Cross(Param.CameraUp, Param.CameraDir);
     const float3 RealUp = Cross(Param.CameraDir, Left);
 
-    const float OffsetX = (float)PixelPosX - Param.Size.x / 2;
-    const float OffsetY = (float)PixelPosY - Param.Size.y / 2;
+    const float OffsetX = ((float)PixelPosX - Param.Size.x / 2) / Param.Size.x * Param.Width;
+    const float OffsetY = ((float)PixelPosY - Param.Size.y / 2) / Param.Size.y * Param.Height;
 
     const float3 Target = InitPosition + Param.CameraDir * Dist - OffsetX * Left - OffsetY * RealUp; //Param.CameraUp;
     const float3 Direction = Normalize(Target - InitPosition);

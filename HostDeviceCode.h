@@ -126,6 +126,9 @@ struct RayMarchingParam
     float3 CameraUp;
 
     // Perspective info
+    float Depth;
+    float Width;
+    float Height;
 };
 
 
