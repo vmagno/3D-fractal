@@ -39,6 +39,7 @@ private:
     void UnmapBuffers();
 
     BasicTimer MarchTimer_;
+    BasicTimer CopyTimer_;
 };
 
 #endif // RAYMARCHINGTEXTURE_H

@@ -35,7 +35,7 @@ __host__ __device__ float GetDistance<FractalTriangle>(const float3& Position)
     const float3 a2             = make_float3(-1, -1, 1);
     const float3 a3             = make_float3(1, -1, -1);
     const float3 a4             = make_float3(-1, 1, -1);
-    const int    NUM_ITERATIONS = 20;
+    const int    NUM_ITERATIONS = 30;
     const float  SCALE          = 2.0f;
 
     float3 z = Position;
@@ -46,20 +46,20 @@ __host__ __device__ float GetDistance<FractalTriangle>(const float3& Position)
     while (n < NUM_ITERATIONS)
     {
         c    = a1;
-        dist = Length(z - a1);
-        d    = Length(z - a2);
+        dist = Length2(z - a1);
+        d    = Length2(z - a2);
         if (d < dist)
         {
             c    = a2;
             dist = d;
         }
-        d = Length(z - a3);
+        d = Length2(z - a3);
         if (d < dist)
         {
             c    = a3;
             dist = d;
         }
-        d = Length(z - a4);
+        d = Length2(z - a4);
         if (d < dist)
         {
             c    = a4;

@@ -99,6 +99,11 @@ inline __host__ __device__ float Length(const float3& Vector)
     return sqrtf(Dot(Vector, Vector));
 }
 
+inline __host__ __device__ float Length2(const float3& Vector)
+{
+    return Dot(Vector, Vector);
+}
+
 inline __host__ __device__ float3 Normalize(const float3& Vector)
 {
     float Len = Length(Vector);

@@ -14,7 +14,7 @@ using namespace std;
 const uint3 DEFAULT_BLOCK_SIZE = make_uint3(256, 1, 1);
 const uint3 DEFAULT_NUM_BLOCKS = make_uint3(0, 0, 0);
 
-const uint2  DEFAULT_SIZE             = make_uint2(896, 896);
+const uint2  DEFAULT_SIZE             = make_uint2(960, 540);
 const float3 DEFAULT_CAMERA_POSITION  = make_float3(0.f, 0.f, -1.f);
 const float3 DEFAULT_CAMERA_DIRECTION = make_float3(0.f, 0.f, 1.f);
 const float3 DEFAULT_CAMERA_UP        = make_float3(0.f, 1.f, 0.f);
@@ -23,8 +23,8 @@ const float DEFAULT_DEPTH  = 300.f;
 const float DEFAULT_WIDTH  = 300.f;
 const float DEFAULT_HEIGHT = 300.f;
 
-const float DEFAULT_DISTANCE_RATIO = 0.002f;
-const uint  DEFAULT_MAX_STEPS      = 20;
+const float DEFAULT_DISTANCE_RATIO = 0.0012f;
+const uint  DEFAULT_MAX_STEPS      = 25;
 
 const float INC_FACTOR = 1.1f;
 
@@ -89,14 +89,18 @@ void RayMarchingTexture::Update()
     CudaCheck(cudaDeviceSynchronize());
     MarchTimer_.Stop();
     MapBuffers();
+    CopyTimer_.Start();
     CudaCheck(cudaMemcpyToArray(TexArray_, 0, 0, Param_.TexCuda, TexDataSize_, cudaMemcpyDeviceToDevice));
+    CopyTimer_.Stop();
     UnmapBuffers();
 
     {
         if (MarchTimer_.GetCount() >= 60)
         {
             cout << setprecision(3) << "Average time: " << MarchTimer_.GetAverageTimeMs() << " ms" << endl;
+            cout << setprecision(3) << "   copy time: " << CopyTimer_.GetAverageTimeMs() << " ms" << endl;
             MarchTimer_.Reset();
+            CopyTimer_.Reset();
         }
     }
 }
@@ -113,11 +117,12 @@ float RayMarchingTexture::GetDistanceFromCamera()
     return GetDistanceFromPos(Param_.CameraPos);
 }
 
-void RayMarchingTexture::SetPerspective(float FOVy, float AspectRatio, float /*zNear*/, float zFar)
+void RayMarchingTexture::SetPerspective(float FOVy, float /*AspectRatio*/, float /*zNear*/, float zFar)
 {
     Param_.Depth  = zFar;
     Param_.Height = tanf(FOVy * 3.14159265f / 180.f / 2.f) * Param_.Depth * 2.f;
-    Param_.Width  = Param_.Height * AspectRatio;
+//    Param_.Width  = Param_.Height * AspectRatio;
+    Param_.Width  = Param_.Height * (float)Param_.Size.x / Param_.Size.y;
 }
 
 void RayMarchingTexture::IncreaseMaxSteps()

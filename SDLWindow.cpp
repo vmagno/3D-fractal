@@ -101,8 +101,10 @@ void SDLWindow::Draw()
 
     // Draw HUD
     {
-        const int  HUDWidth  = (int)Width_;
-        const int  HUDHeight = (int)Height_;
+//        const int  HUDWidth  = (int)Width_;
+//        const int  HUDHeight = (int)Height_;
+        const int  HUDWidth  = (int)max(Width_, Height_);
+        const int  HUDHeight = (int)HUDWidth;
         const int2 HUDPos    = make_int2(0, (int)Height_ - HUDHeight);
         glViewport(HUDPos.x, HUDPos.y, HUDWidth, HUDHeight);
         HUD_->Draw();
