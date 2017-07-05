@@ -4,6 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 QMAKE_CXXFLAGS += -Werror
+QMAKE_CXXFLAGS += -Wextra
 
 SOURCES += \
     Main.cpp \
@@ -19,6 +20,9 @@ SOURCES += \
     Util.cpp \
     TexturedItem.cpp \
     RayMarchingTexture.cpp
+
+SOURCES += Kernels.cu
+SOURCES -= Kernels.cu
 
 HEADERS += \
     Util.h \
@@ -76,6 +80,7 @@ QMAKE_LIBDIR += $$CUDA_DIR/lib64/
 LIBS += -lcudart
 
 NVCC_OPTIONS += -g
+NVCC_OPTIONS += --compiler-options "-Wall,-Wextra,-Wno-unused-parameter"
 
 # Configuration of the Cuda compiler
 CONFIG(debug, debug|release) {

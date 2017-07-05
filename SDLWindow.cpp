@@ -28,7 +28,7 @@ SDLWindow::SDLWindow()
         Util::LogSDLError(cerr, "SDL_init");
     }
 
-    Window_ = SDL_CreateWindow("Yayy!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Width_, Height_,
+    Window_ = SDL_CreateWindow("Yayy!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (int)Width_, (int)Height_,
                                SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
     if (Window_ == NULL)
@@ -66,6 +66,7 @@ void SDLWindow::Animate()
 {
     Camera_.Move();
     //    Fractal_->Update();
+    if (Camera_.IsMoving()) Fractal2_->ResetView();
     Fractal2_->SetCameraInfo(Camera_.GetPosition(), Camera_.GetDirection(), Camera_.GetUp());
     Fractal2_->Update();
     Camera_.AdjustMoveSpeedFactor(Fractal2_->GetDistanceFromCamera());
@@ -101,8 +102,8 @@ void SDLWindow::Draw()
 
     // Draw HUD
     {
-//        const int  HUDWidth  = (int)Width_;
-//        const int  HUDHeight = (int)Height_;
+        //        const int  HUDWidth  = (int)Width_;
+        //        const int  HUDHeight = (int)Height_;
         const int  HUDWidth  = (int)max(Width_, Height_);
         const int  HUDHeight = (int)HUDWidth;
         const int2 HUDPos    = make_int2(0, (int)Height_ - HUDHeight);
@@ -122,10 +123,11 @@ void SDLWindow::HandleEvents()
         {
         case SDL_QUIT: bDoContinue_ = false; break;
         case SDL_KEYUP:
-        case SDL_KEYDOWN: HandleKeyPress(Event.key.keysym.sym, (Event.type == SDL_KEYDOWN)); break;
+        case SDL_KEYDOWN: HandleKeyPress(Event.key.keysym.sym, (Event.type == SDL_KEYDOWN)); Fractal2_->ResetView(); break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
             HandleMouseClick(Event.button.button, Event.button.state, Event.button.x, Event.button.y);
+            Fractal2_->ResetView();
             break;
         case SDL_MOUSEMOTION: HandleMouseMove(Event.motion.x, Event.motion.y); break;
         case SDL_WINDOWEVENT:
@@ -139,6 +141,8 @@ void SDLWindow::HandleEvents()
                 SDL_GetWindowSize(Window_, &w, &h);
                 ResizeWindow(w, h);
             }
+            Fractal2_->ResetView();
+            break;
         default: break;
         }
     }
@@ -160,10 +164,22 @@ void SDLWindow::HandleKeyPress(SDL_Keycode Key, bool bPress)
     case SDLK_PAGEDOWN: Camera_.SetMoveDown(bPress); break;
     case SDLK_d:
     case SDLK_RIGHT: Camera_.SetMoveRight(bPress); break;
-    case SDLK_t: Fractal2_->IncreaseMaxSteps(); Fractal2_->PrintMarchingParam(); break;
-    case SDLK_g: Fractal2_->DecreaseMaxSteps(); Fractal2_->PrintMarchingParam(); break;
-    case SDLK_y: Fractal2_->IncreaseMinDist(); Fractal2_->PrintMarchingParam(); break;
-    case SDLK_h: Fractal2_->DecreaseMinDist(); Fractal2_->PrintMarchingParam(); break;
+    case SDLK_t:
+        Fractal2_->IncreaseMaxSteps();
+        Fractal2_->PrintMarchingParam();
+        break;
+    case SDLK_g:
+        Fractal2_->DecreaseMaxSteps();
+        Fractal2_->PrintMarchingParam();
+        break;
+    case SDLK_y:
+        Fractal2_->IncreaseMinDist();
+        Fractal2_->PrintMarchingParam();
+        break;
+    case SDLK_h:
+        Fractal2_->DecreaseMinDist();
+        Fractal2_->PrintMarchingParam();
+        break;
     case SDLK_z:
         if (bPress) Fractal_->MovePlane(1);
         break;
@@ -209,6 +225,7 @@ void SDLWindow::HandleMouseMove(int x, int y)
         Camera_.Rotate(Horizontal, Vertical);
         PreviousX_ = x;
         PreviousY_ = y;
+        Fractal2_->ResetView();
     }
 }
 

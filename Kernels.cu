@@ -1,5 +1,6 @@
 #include "Kernels.h"
 
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -167,7 +168,7 @@ __global__ void GenerateTriangles(KernelParameters Param, ArrayPointers DevicePo
     // Form the triangles
     const uint NumVertices = tex1Dfetch<uint>(DevicePointers.NumVertexTableTex, CellId);
 
-    for (int iVert = 0; iVert < NumVertices; iVert += 3)
+    for (uint iVert = 0; iVert < NumVertices; iVert += 3)
     {
         uint Index = DevicePointers.VoxelVerticesScan[VoxelId] + iVert;
 
@@ -229,46 +230,74 @@ void LaunchSampleVolume(const KernelParameters& Param, const ArrayPointers& Devi
     fflush(stdout);
 }
 
+template <RayMarchingStep State>
 __global__ void RayMarching(RayMarchingParam Param)
 {
-    const uint PixelId = GetGlobalThreadId();
+    if (State == None) return;
+
+    const uint PixelId = GetPixelId<State>(Param, GetGlobalThreadId(), Param.CurrentSubstep);
+    //    const uint PixelId = GetPixelId<FullRes>(Param, GetGlobalThreadId());
+
+    if (PixelId >= Param.TotalPixels) return;
 
     const uint PixelPosX = PixelId % Param.Size.x;
     const uint PixelPosY = PixelId / Param.Size.y;
 
-    float3 InitPosition = Param.CameraPos; // - make_float3(0.5f, 0.f, 0.f);
-    //    float3 InitPosition = make_float3((float)PixelPosX - Param.Size.x / 2, (float)PixelPosY - Param.Size.y / 2,
-    //    -100.f);
-    //    float3 InitPosition = make_float3(0.f, 0.f, -20.f);
-    const float  Dist   = Param.Depth;
-    const float3 Left   = Cross(Param.CameraUp, Param.CameraDir);
-    const float3 RealUp = Cross(Param.CameraDir, Left);
-
     const float OffsetX = ((float)PixelPosX - Param.Size.x / 2) / Param.Size.x * Param.Width;
     const float OffsetY = ((float)PixelPosY - Param.Size.y / 2) / Param.Size.y * Param.Height;
 
-    const float3 Target = InitPosition + Param.CameraDir * Dist - OffsetX * Left - OffsetY * RealUp; // Param.CameraUp;
-    const float3 Direction = Normalize(Target - InitPosition);
-    //    const float3 Direction = make_float3(0.f, 0.f, 1.f);
+    const float3 Target =
+      Param.CameraPos + Param.CameraDir * Param.Depth - OffsetX * Param.CameraLeft - OffsetY * Param.CameraRealUp;
+    const float3 Direction = Normalize(Target - Param.CameraPos);
 
-    float       TotalDist = 0.f;
-    int         steps;
+    float TotalDist = 0.f;
+    uint  steps;
     for (steps = 0; steps < Param.MaxSteps; steps++)
     {
-        const float3 Position = InitPosition + TotalDist * Direction;
+        const float3 Position = Param.CameraPos + TotalDist * Direction;
         const float  Distance = GetDistance<DistFunction>(Position);
         TotalDist += Distance;
         if (Distance < Param.MinDistance) break;
     }
 
     const float Brightness = 1.f - static_cast<float>(steps) / Param.MaxSteps;
+    const uint  Color      = MakeColor((uchar)(255 * Brightness), 0, 0, 0xff);
 
-    Param.TexCuda[PixelId] = MakeColor(255 * Brightness, 0, 0, 0xff);
+    Param.TexCuda[PixelId] = Color;
+    if (State == HalfRes)
+    {
+        Param.TexCuda[PixelId + 1]                = Color;
+        Param.TexCuda[PixelId + Param.Size.x]     = Color;
+        Param.TexCuda[PixelId + Param.Size.x + 1] = Color;
+    }
 }
 
-void LaunchRayMarching(const RayMarchingParam& Param)
+void LaunchRayMarching(const RayMarchingParam& Param, const RayMarchingStep Step)
 {
-    RayMarching<<<Param.NumBlocks, Param.BlockSize>>>(Param);
+    switch (Step)
+    {
+    case HalfRes:
+    {
+        //        std::cout << "Half res kernel" << std::endl;
+        const uint NumBlocks = (uint)ceilf((float)Param.Size.x * Param.Size.y / Param.BlockSize.x / Param.BlockSize.y /
+                                           Param.BlockSize.z / 4);
+        RayMarching<HalfRes><<<NumBlocks, Param.BlockSize>>>(Param);
+        break;
+    }
+    case FillRes:
+    {
+        //        std::cout << "Fill res kernel" << std::endl;
+        const uint NumBlocks = (uint)ceilf((float)Param.Size.x * Param.Size.y / Param.BlockSize.x / Param.BlockSize.y /
+                                           Param.BlockSize.z / 4);
+        RayMarching<FillRes><<<NumBlocks, Param.BlockSize>>>(Param);
+        break;
+    }
+    case FullRes:
+        //        std::cout << "Full res kernel" << std::endl;
+        RayMarching<FullRes><<<Param.NumBlocks, Param.BlockSize>>>(Param);
+        break;
+    case None: break;
+    }
 }
 
 float GetDistanceFromPos(const float3& Position)

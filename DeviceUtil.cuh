@@ -133,4 +133,28 @@ __device__ uint MakeColor(const float3& Col)
     return MakeColor((uchar)(255 * Tmp.x), (uchar)(255 * Tmp.y), (uchar)(255 * Tmp.z), 255);
 }
 
+template <RayMarchingStep State>
+__device__ uint GetPixelId(const RayMarchingParam& Param, uint ThreadId, uint CurrentSubstep = 0)
+{
+    if (State == HalfRes || State == FillRes)
+    {
+        const uint BasePixelId = 2 * (((ThreadId * 2) / Param.Size.x) * Param.Size.x + ThreadId % (Param.Size.x / 2));
+        if (State == HalfRes)
+        {
+            return BasePixelId;
+        }
+        else
+        {
+            if (CurrentSubstep == 1)
+                return BasePixelId + 1;
+            else if (CurrentSubstep == 2)
+                return BasePixelId + Param.Size.x;
+            else if (CurrentSubstep == 3)
+                return BasePixelId + Param.Size.x + 1;
+        }
+    }
+
+    return ThreadId;
+}
+
 #endif // DEVICEUTIL_CUH

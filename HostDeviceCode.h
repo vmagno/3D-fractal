@@ -109,6 +109,14 @@ struct KernelParameters
     }
 };
 
+enum RayMarchingStep
+{
+    None,
+    HalfRes,
+    FillRes,
+    FullRes
+};
+
 struct RayMarchingParam
 {
     uint3 NumBlocks; //!< Number of blocks (3D) in kernel launch
@@ -116,11 +124,14 @@ struct RayMarchingParam
 
     uint* TexCuda; //!< The texture that will contain the result
     uint2 Size;    //!< Size in pixels of the displayed texture
+    uint TotalPixels; //!< Total number of pixels in the texture
 
     // Camera info
     float3 CameraPos;
     float3 CameraDir;
     float3 CameraUp;
+    float3 CameraLeft;
+    float3 CameraRealUp;
 
     // Perspective info
     float Depth;
@@ -131,6 +142,18 @@ struct RayMarchingParam
     float DistanceRatio;
     float MinDistance;
     uint MaxSteps;
+
+    //
+    uint CurrentSubstep; //!< Used when only computing part of an image
+
+    void Print()
+    {
+        std::cout << "RayMarchingParameters: " << std::endl
+                  << "  NumBlocks:   " << NumBlocks.x << ", " << NumBlocks.y << ", " << NumBlocks.z << std::endl
+                  << "  BlockSize:   " << BlockSize.x << ", " << BlockSize.y << ", " << BlockSize.z << std::endl
+                  << "  Size:        " << Size.x << ", " << Size.y << std::endl
+                  << "  TotalPixels: " << TotalPixels << std::endl;
+    }
 };
 
 #endif // HOSTDEVICECODE_H

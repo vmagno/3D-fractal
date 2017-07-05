@@ -25,6 +25,12 @@ public:
     void SetTurnLeft(bool bLeft = true) { bTurnLeft_ = bLeft; }
     void SetTurnRight(bool bRight = true) { bTurnRight_ = bRight; }
 
+    bool IsMoving() const
+    {
+        return bMoveForward_ || bMoveBack_ || bMoveLeft_ || bMoveRight_ || bMoveUp_ || bMoveDown_ || bTurnLeft_ ||
+               bTurnRight_;
+    }
+
     void Rotate(int Horizontal, int Vertical);
 
     void AdjustMoveSpeedFactor(const float Distance);
