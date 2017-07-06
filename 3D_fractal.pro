@@ -82,6 +82,9 @@ LIBS += -lcudart
 NVCC_OPTIONS += -g -std=c++11
 NVCC_OPTIONS += --compiler-options "-Wall,-Wextra,-Wno-unused-parameter"
 
+# To help when debugging
+#NVCC_OPTIONS += -G
+
 # Configuration of the Cuda compiler
 CONFIG(debug, debug|release) {
     # Debug mode

@@ -15,7 +15,7 @@ using namespace std;
 const uint3 DEFAULT_BLOCK_SIZE = make_uint3(256, 1, 1);
 const uint3 DEFAULT_NUM_BLOCKS = make_uint3(0, 0, 0);
 
-// const uint2  DEFAULT_SIZE             = make_uint2(240, 135);
+// const uint2 DEFAULT_SIZE = make_uint2(240, 135);
 // const uint2 DEFAULT_SIZE = make_uint2(960, 540);
 const uint2  DEFAULT_SIZE             = make_uint2(1920, 1080);
 const float3 DEFAULT_CAMERA_POSITION  = make_float3(0.f, 0.f, -1.f);
@@ -124,6 +124,7 @@ void RayMarchingTexture::Update()
                 Param_.CurrentSubstep = 0;
             }
             break;
+        case RMS::FullRes: NextStep_ = RMS::None; break;
         default: break;
         }
 

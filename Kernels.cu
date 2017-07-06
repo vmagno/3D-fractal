@@ -282,7 +282,7 @@ void LaunchRayMarching(const RayMarchingParam& Param, const RMS Step)
     {
     case RMS::HalfRes:
     {
-        //        std::cout << "Half res kernel" << std::endl;
+        // std::cout << "Half res kernel" << std::endl;
         const uint NumBlocks = (uint)ceilf((float)Param.Size.x * Param.Size.y / Param.BlockSize.x / Param.BlockSize.y /
                                            Param.BlockSize.z / 4);
         RayMarching<RMS::HalfRes><<<NumBlocks, Param.BlockSize>>>(Param);
@@ -297,10 +297,12 @@ void LaunchRayMarching(const RayMarchingParam& Param, const RMS Step)
         break;
     }
     case RMS::FullRes:
-        //        std::cout << "Full res kernel" << std::endl;
+        // std::cout << "Full res kernel" << std::endl;
         RayMarching<RMS::FullRes><<<Param.NumBlocks, Param.BlockSize>>>(Param);
         break;
-    case RMS::None: break;
+    case RMS::None:
+        // std::cout << "Some other RMS" << std::endl;
+        break;
     }
 }
 
