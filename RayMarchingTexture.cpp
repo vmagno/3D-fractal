@@ -31,8 +31,10 @@ const uint  DEFAULT_MAX_STEPS      = 25;
 
 const float INC_FACTOR = 1.1f;
 
+using RMS = RayMarchingStep;
+
 RayMarchingTexture::RayMarchingTexture()
-    : NextStep_(HalfRes)
+    : NextStep_(RMS::None)
     , Texture_(0)
     , TexResource_(nullptr)
     , TexArray_(nullptr)
@@ -99,7 +101,7 @@ void RayMarchingTexture::Update()
 {
     Param_.MinDistance = Param_.DistanceRatio * fminf(GetDistanceFromCamera(), 1.f);
 
-    if (NextStep_ != RayMarchingStep::None)
+    if (NextStep_ != RMS::None)
     {
         MarchTimer_.Start();
         Param_.CameraLeft   = Cross(Param_.CameraUp, Param_.CameraDir);
@@ -110,15 +112,15 @@ void RayMarchingTexture::Update()
 
         switch (NextStep_)
         {
-        case HalfRes:
-            NextStep_             = FillRes;
+        case RMS::HalfRes:
+            NextStep_             = RMS::FillRes;
             Param_.CurrentSubstep = 1;
             break;
-        case FillRes:
+        case RMS::FillRes:
             Param_.CurrentSubstep++;
             if (Param_.CurrentSubstep > 3)
             {
-                NextStep_             = None;
+                NextStep_             = RMS::None;
                 Param_.CurrentSubstep = 0;
             }
             break;

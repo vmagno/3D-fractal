@@ -4,6 +4,10 @@
 #include "CudaMath.h"
 #include "HostDeviceCode.h"
 
+namespace DeviceUtilities {
+
+using RMS = RayMarchingStep;
+
 __device__ uint GetGlobalThreadId()
 {
     const uint IdInBlock      = (threadIdx.z * blockDim.y + threadIdx.y) * blockDim.x + threadIdx.x;
@@ -136,10 +140,10 @@ __device__ uint MakeColor(const float3& Col)
 template <RayMarchingStep State>
 __device__ uint GetPixelId(const RayMarchingParam& Param, uint ThreadId, uint CurrentSubstep = 0)
 {
-    if (State == HalfRes || State == FillRes)
+    if (State == RMS::HalfRes || State == RMS::FillRes)
     {
         const uint BasePixelId = 2 * (((ThreadId * 2) / Param.Size.x) * Param.Size.x + ThreadId % (Param.Size.x / 2));
-        if (State == HalfRes)
+        if (State == RMS::HalfRes)
         {
             return BasePixelId;
         }
@@ -156,5 +160,7 @@ __device__ uint GetPixelId(const RayMarchingParam& Param, uint ThreadId, uint Cu
 
     return ThreadId;
 }
+
+} // DeviceUtilities
 
 #endif // DEVICEUTIL_CUH

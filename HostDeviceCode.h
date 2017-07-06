@@ -25,7 +25,7 @@ inline void CudaCallWithCheck(cudaError_t ReturnCode, const char* Filename, int 
     }
 }
 
-enum DEType
+enum class DEType
 {
     Sphere,
     TripleSphere,
@@ -109,7 +109,7 @@ struct KernelParameters
     }
 };
 
-enum RayMarchingStep
+enum class RayMarchingStep
 {
     None,
     HalfRes,

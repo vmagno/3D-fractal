@@ -4,20 +4,24 @@
 #include "CudaMath.h"
 #include "HostDeviceCode.h"
 
-template <DEType default_dist>
+namespace DistanceEstimation {
+
+using DE = DEType;
+
+template <DE default_dist>
 __host__ __device__ float GetDistance(const float3& Position)
 {
     return fmaxf(Length(Position) - 0.5f, 0.f); // Just a sphere
 }
 
 template <>
-__host__ __device__ float GetDistance<Sphere>(const float3& Position)
+__host__ __device__ float GetDistance<DE::Sphere>(const float3& Position)
 {
     return fmaxf(Length(Position) - 0.5f, 0.f);
 }
 
 template <>
-__host__ __device__ float GetDistance<TripleSphere>(const float3& Position)
+__host__ __device__ float GetDistance<DE::TripleSphere>(const float3& Position)
 {
     return fminf(fmaxf(Length(Position - make_float3(1.f, 1.f, 0.f)) - 0.5f, 0.f),
                  fminf(fmaxf(Length(Position - make_float3(1.f, -1.f, 0.f)) - 0.5f, 0.f),
@@ -29,7 +33,7 @@ __host__ __device__ float GetDistance<TripleSphere>(const float3& Position)
  * 		http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
  */
 template <>
-__host__ __device__ float GetDistance<FractalTriangle>(const float3& Position)
+__host__ __device__ float GetDistance<DE::FractalTriangle>(const float3& Position)
 {
     const float3 a1             = make_float3(1, 1, 1);
     const float3 a2             = make_float3(-1, -1, 1);
@@ -71,5 +75,7 @@ __host__ __device__ float GetDistance<FractalTriangle>(const float3& Position)
 
     return Length(z) * pow(SCALE, float(-n));
 }
+
+} // DistanceEstimation
 
 #endif // DISTANCE_ESTIMATORS_CUH__

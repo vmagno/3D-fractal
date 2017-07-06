@@ -12,7 +12,11 @@
 #include "DeviceUtil.cuh"
 #include "DistanceEstimators.cuh"
 
-const DEType DistFunction = FractalTriangle;
+using namespace DeviceUtilities;
+using namespace DistanceEstimation;
+using DE = DEType;
+
+const DE DistFunction = DE::FractalTriangle;
 
 __global__ void TestKernel(KernelParameters Param, ArrayPointers DevicePointers)
 {
@@ -230,10 +234,10 @@ void LaunchSampleVolume(const KernelParameters& Param, const ArrayPointers& Devi
     fflush(stdout);
 }
 
-template <RayMarchingStep State>
+template <RMS   State>
 __global__ void RayMarching(RayMarchingParam Param)
 {
-    if (State == None) return;
+    if (State == RMS::None) return;
 
     const uint PixelId = GetPixelId<State>(Param, GetGlobalThreadId(), Param.CurrentSubstep);
     //    const uint PixelId = GetPixelId<FullRes>(Param, GetGlobalThreadId());
@@ -264,7 +268,7 @@ __global__ void RayMarching(RayMarchingParam Param)
     const uint  Color      = MakeColor((uchar)(255 * Brightness), 0, 0, 0xff);
 
     Param.TexCuda[PixelId] = Color;
-    if (State == HalfRes)
+    if (State == RMS::HalfRes)
     {
         Param.TexCuda[PixelId + 1]                = Color;
         Param.TexCuda[PixelId + Param.Size.x]     = Color;
@@ -272,31 +276,31 @@ __global__ void RayMarching(RayMarchingParam Param)
     }
 }
 
-void LaunchRayMarching(const RayMarchingParam& Param, const RayMarchingStep Step)
+void LaunchRayMarching(const RayMarchingParam& Param, const RMS Step)
 {
     switch (Step)
     {
-    case HalfRes:
+    case RMS::HalfRes:
     {
         //        std::cout << "Half res kernel" << std::endl;
         const uint NumBlocks = (uint)ceilf((float)Param.Size.x * Param.Size.y / Param.BlockSize.x / Param.BlockSize.y /
                                            Param.BlockSize.z / 4);
-        RayMarching<HalfRes><<<NumBlocks, Param.BlockSize>>>(Param);
+        RayMarching<RMS::HalfRes><<<NumBlocks, Param.BlockSize>>>(Param);
         break;
     }
-    case FillRes:
+    case RMS::FillRes:
     {
-        //        std::cout << "Fill res kernel" << std::endl;
         const uint NumBlocks = (uint)ceilf((float)Param.Size.x * Param.Size.y / Param.BlockSize.x / Param.BlockSize.y /
                                            Param.BlockSize.z / 4);
-        RayMarching<FillRes><<<NumBlocks, Param.BlockSize>>>(Param);
+        // std::cout << "Fill res kernel, substep " << Param.CurrentSubstep << ", NumBlocks " << NumBlocks << std::endl;
+        RayMarching<RMS::FillRes><<<NumBlocks, Param.BlockSize>>>(Param);
         break;
     }
-    case FullRes:
+    case RMS::FullRes:
         //        std::cout << "Full res kernel" << std::endl;
-        RayMarching<FullRes><<<Param.NumBlocks, Param.BlockSize>>>(Param);
+        RayMarching<RMS::FullRes><<<Param.NumBlocks, Param.BlockSize>>>(Param);
         break;
-    case None: break;
+    case RMS::None: break;
     }
 }
 

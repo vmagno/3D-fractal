@@ -79,7 +79,7 @@ INCLUDEPATH += $$CUDA_DIR/include
 QMAKE_LIBDIR += $$CUDA_DIR/lib64/
 LIBS += -lcudart
 
-NVCC_OPTIONS += -g
+NVCC_OPTIONS += -g -std=c++11
 NVCC_OPTIONS += --compiler-options "-Wall,-Wextra,-Wno-unused-parameter"
 
 # Configuration of the Cuda compiler

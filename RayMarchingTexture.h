@@ -21,7 +21,7 @@ public:
 
     inline void ResetView()
     {
-        NextStep_             = HalfRes;
+        NextStep_             = RayMarchingStep::HalfRes;
         Param_.CurrentSubstep = 0;
     }
 
