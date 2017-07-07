@@ -12,23 +12,35 @@ public:
     BasicTimer()
         : TimerCount(0)
     {
+        TotalTime.tv_sec  = 0;
+        TotalTime.tv_nsec = 0;
     }
+
     void Start() { clock_gettime(CLOCK_REALTIME, &StartTime); }
+
     void Stop()
     {
         clock_gettime(CLOCK_REALTIME, &StopTime);
         TimerCount++;
+        AddTimes(TotalTime, GetTimeDiff(StartTime, StopTime));
     }
-    void                   Reset() { TimerCount = 0; }
+
+    void Reset()
+    {
+        TimerCount        = 0;
+        TotalTime.tv_sec  = 0;
+        TotalTime.tv_nsec = 0;
+    }
+
     unsigned long long int GetCount() const { return TimerCount; }
 
-    float GetAverageTimeMs() const
+    float GetLastTimeMs() const
     {
         timespec TimeDiff = GetTimeDiff(StartTime, StopTime);
         return TimespecToMs(TimeDiff);
-        // return 1.f;
-        // printf("TimerCount = %llu\n", TimerCount);
     }
+
+    float GetAverageTimeMs() const { return TimespecToMs(TotalTime) / TimerCount; }
 
     float GetTimeSinceLastCheck()
     {
@@ -46,8 +58,10 @@ public:
     }
 
 private:
-    timespec               StartTime;
-    timespec               StopTime;
+    timespec StartTime;
+    timespec StopTime;
+    timespec TotalTime;
+
     unsigned long long int TimerCount;
 
     static timespec GetTimeDiff(const timespec& start, const timespec& end)
@@ -64,6 +78,17 @@ private:
             temp.tv_nsec = end.tv_nsec - start.tv_nsec;
         }
         return temp;
+    }
+
+    static void AddTimes(timespec& LHS, const timespec& RHS)
+    {
+        LHS.tv_sec += RHS.tv_sec;
+        LHS.tv_nsec += RHS.tv_nsec;
+        if (LHS.tv_nsec > 1000000000)
+        {
+            LHS.tv_sec += 1;
+            LHS.tv_nsec -= 1000000000;
+        }
     }
 
     static float TimespecToMs(const timespec& time) { return (time.tv_sec * 1000 + time.tv_nsec / 1000000.f); }

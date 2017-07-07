@@ -25,6 +25,13 @@ inline void CudaCallWithCheck(cudaError_t ReturnCode, const char* Filename, int 
     }
 }
 
+class InitCaller
+{
+public:
+    template <typename T>
+    static void InitValue(T* Vector, size_t Size, T Value);
+};
+
 enum class DEType
 {
     Sphere,
@@ -122,9 +129,10 @@ struct RayMarchingParam
     uint3 NumBlocks; //!< Number of blocks (3D) in kernel launch
     uint3 BlockSize; //!< Number of threads (3D) in each launched block
 
-    uint* TexCuda; //!< The texture that will contain the result
-    uint2 Size;    //!< Size in pixels of the displayed texture
-    uint TotalPixels; //!< Total number of pixels in the texture
+    uint*  TexCuda;     //!< The texture that will contain the result
+    float* Distances;   //!< Object distance at each pixel
+    uint2  Size;        //!< Size in pixels of the displayed texture
+    uint   TotalPixels; //!< Total number of pixels in the texture
 
     // Camera info
     float3 CameraPos;
@@ -141,7 +149,7 @@ struct RayMarchingParam
     // Ray marching iteration parameters
     float DistanceRatio;
     float MinDistance;
-    uint MaxSteps;
+    uint  MaxSteps;
 
     //
     uint CurrentSubstep; //!< Used when only computing part of an image

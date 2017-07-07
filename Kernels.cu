@@ -310,3 +310,24 @@ float GetDistanceFromPos(const float3& Position)
 {
     return GetDistance<DistFunction>(Position);
 }
+
+template <typename T>
+__global__ void InitValueKernel(T* Vector, size_t Size, T Value)
+{
+    uint Index = GetGlobalThreadId();
+    if (Index >= Size) return;
+    Vector[Index] = Value;
+}
+
+template <typename T>
+void InitCaller::InitValue(T* Vector, size_t Size, T Value)
+{
+    const uint NumThreadsPerBlock = 512;
+    const dim3 BlockSize(NumThreadsPerBlock);
+    const dim3 GridSize((uint)ceilf((float)Size / NumThreadsPerBlock));
+    InitValueKernel<<<GridSize, BlockSize>>>(Vector, Size, Value);
+}
+
+template void InitCaller::InitValue<uint>(uint*, size_t, uint);
+template void InitCaller::InitValue<float>(float*, size_t, float);
+

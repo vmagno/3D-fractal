@@ -44,6 +44,7 @@ RayMarchingTexture::RayMarchingTexture()
     Param_.NumBlocks = DEFAULT_NUM_BLOCKS;
     Param_.Size      = DEFAULT_SIZE;
     Param_.TexCuda   = nullptr;
+    Param_.Distances = nullptr;
 
     // Make sure the texture size uses even numbers!!!
     if (Param_.Size.x % 2 != 0) Param_.Size.x++;
@@ -93,8 +94,12 @@ void RayMarchingTexture::InitTexture()
 
     TexDataSize_ = Param_.TotalPixels * 4 * sizeof(GLubyte);
     CudaCheck(cudaMalloc((void**)&Param_.TexCuda, TexDataSize_));
+
     CudaCheck(cudaMemset(Param_.TexCuda, 0, TexDataSize_));
     CudaCheck(cudaGraphicsGLRegisterImage(&TexResource_, Texture_, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
+
+    CudaCheck(cudaMalloc((void**)&Param_.Distances, Param_.TotalPixels * sizeof(float)));
+    CudaCheck(cudaMemset(Param_.Distances, 0, Param_.TotalPixels * sizeof(float)));
 }
 
 void RayMarchingTexture::Update()
@@ -144,6 +149,15 @@ void RayMarchingTexture::Update()
             cout << setprecision(3) << "   copy time: " << CopyTimer_.GetAverageTimeMs() << " ms" << endl;
             MarchTimer_.Reset();
             CopyTimer_.Reset();
+        }
+    }
+
+    {
+        static bool first = true;
+        if (first)
+        {
+            first = false;
+            ResetView();
         }
     }
 }
