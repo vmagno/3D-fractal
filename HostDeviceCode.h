@@ -121,7 +121,8 @@ enum class RayMarchingStep
     None,
     HalfRes,
     FillRes,
-    FullRes
+    FullRes,
+    ComputeColor
 };
 
 struct RayMarchingParam
@@ -146,13 +147,17 @@ struct RayMarchingParam
     float Width;
     float Height;
 
+    // Light info;
+    float3 LightPos;
+
     // Ray marching iteration parameters
     float DistanceRatio;
     float MinDistance;
     uint  MaxSteps;
 
     //
-    uint CurrentSubstep; //!< Used when only computing part of an image
+    uint  CurrentSubstep;    //!< Used when only computing part of an image
+    float DistanceThreshold; //!< Distance after which a pixel is considered part of the background
 
     void Print()
     {

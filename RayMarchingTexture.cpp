@@ -26,10 +26,14 @@ const float DEFAULT_DEPTH  = 300.f;
 const float DEFAULT_WIDTH  = 300.f;
 const float DEFAULT_HEIGHT = 300.f;
 
+const float3 DEFAULT_LIGHT_POSITION = DEFAULT_CAMERA_POSITION;
+
 const float DEFAULT_DISTANCE_RATIO = 0.0012f;
 const uint  DEFAULT_MAX_STEPS      = 25;
 
 const float INC_FACTOR = 1.1f;
+
+const float DEFAULT_DISTANCE_THRESHOLD = 50.f;
 
 using RMS = RayMarchingStep;
 
@@ -62,11 +66,14 @@ RayMarchingTexture::RayMarchingTexture()
     Param_.Width  = DEFAULT_WIDTH;
     Param_.Height = DEFAULT_HEIGHT;
 
+    Param_.LightPos = DEFAULT_LIGHT_POSITION;
+
     Param_.DistanceRatio = DEFAULT_DISTANCE_RATIO;
     Param_.MinDistance   = Param_.DistanceRatio;
     Param_.MaxSteps      = DEFAULT_MAX_STEPS;
 
-    Param_.CurrentSubstep = 0;
+    Param_.CurrentSubstep    = 0;
+    Param_.DistanceThreshold = DEFAULT_DISTANCE_THRESHOLD;
 }
 
 void RayMarchingTexture::Init()
@@ -130,6 +137,7 @@ void RayMarchingTexture::Update()
             }
             break;
         case RMS::FullRes: NextStep_ = RMS::None; break;
+        case RMS::ComputeColor: NextStep_ = RMS::None; break;
         default: break;
         }
 

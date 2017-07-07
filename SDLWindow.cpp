@@ -102,11 +102,13 @@ void SDLWindow::Draw()
 
     // Draw HUD
     {
-        //        const int  HUDWidth  = (int)Width_;
-        //        const int  HUDHeight = (int)Height_;
-        const int  HUDWidth  = (int)max(Width_, Height_);
-        const int  HUDHeight = (int)HUDWidth;
-        const int2 HUDPos    = make_int2(0, (int)Height_ - HUDHeight);
+        // const int HUDWidth  = (int)Width_;
+        // const int HUDHeight = (int)Height_;
+        // const int  HUDWidth  = (int)max(Width_, Height_);
+        // const int  HUDHeight = (int)HUDWidth;
+        const int HUDWidth = 1920;
+        const int HUDHeight = 1080;
+        const int2 HUDPos = make_int2(((int)Width_ - HUDWidth) / 2, ((int)Height_ - HUDHeight) / 2);
         glViewport(HUDPos.x, HUDPos.y, HUDWidth, HUDHeight);
         HUD_->Draw();
     }
@@ -123,7 +125,10 @@ void SDLWindow::HandleEvents()
         {
         case SDL_QUIT: bDoContinue_ = false; break;
         case SDL_KEYUP:
-        case SDL_KEYDOWN: HandleKeyPress(Event.key.keysym.sym, (Event.type == SDL_KEYDOWN)); Fractal2_->ResetView(); break;
+        case SDL_KEYDOWN:
+            HandleKeyPress(Event.key.keysym.sym, (Event.type == SDL_KEYDOWN));
+            Fractal2_->ResetView();
+            break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
             HandleMouseClick(Event.button.button, Event.button.state, Event.button.x, Event.button.y);
@@ -144,8 +149,8 @@ void SDLWindow::HandleEvents()
             Fractal2_->ResetView();
             break;
         default:
-            //cout << "Some event" << endl;
-            //Fractal2_->ResetView();
+            // cout << "Some event" << endl;
+            // Fractal2_->ResetView();
             break;
         }
     }

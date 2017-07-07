@@ -1,6 +1,8 @@
 #ifndef DEVICEUTIL_CUH
 #define DEVICEUTIL_CUH
 
+#include <vector>
+
 #include "CudaMath.h"
 #include "HostDeviceCode.h"
 
@@ -159,6 +161,60 @@ __device__ uint GetPixelId(const RayMarchingParam& Param, uint ThreadId, uint Cu
     }
 
     return ThreadId;
+}
+
+__device__ uint2 GetPixelLocationFromId(const RayMarchingParam& Param, const uint PixelId)
+{
+    uint2 Location;
+    Location.x = PixelId % Param.Size.x;
+    Location.y = PixelId / Param.Size.x;
+    return Location;
+}
+
+__device__ void GetNeighbourPixels(const RayMarchingParam& Param, const uint PixelId, uint (&Neighbours)[8])
+{
+    uint2 PixelLocation = GetPixelLocationFromId(Param, PixelId);
+
+    for (int i = 0; i < 8; i++)
+    {
+        Neighbours[i] = Param.TotalPixels;
+    }
+
+    if (PixelLocation.y > 0)
+    {
+        if (PixelLocation.x > 0) Neighbours[0]                = PixelId - Param.Size.x - 1;
+        Neighbours[1]                                         = PixelId - Param.Size.x;
+        if (PixelLocation.x < Param.Size.x - 1) Neighbours[2] = PixelId - Param.Size.x + 1;
+    }
+
+    if (PixelLocation.x > 0) Neighbours[3]                = PixelId - 1;
+    if (PixelLocation.x < Param.Size.x - 1) Neighbours[4] = PixelId + 1;
+
+    if (PixelLocation.y < Param.Size.y - 1)
+    {
+        if (PixelLocation.x > 0) Neighbours[5]                = PixelId + Param.Size.x - 1;
+        Neighbours[6]                                         = PixelId + Param.Size.x;
+        if (PixelLocation.x < Param.Size.x - 1) Neighbours[7] = PixelId + Param.Size.x + 1;
+    }
+}
+
+__device__ void GetDistValues(const RayMarchingParam& Param, const uint (&Neighbours)[8], float (&Distances)[4])
+{
+    uint Lists[4][3] = {{0, 3, 5}, {2, 4, 7}, {0, 1, 2}, {5, 6, 7}};
+    for (uint i = 0; i < 4; i++)
+    {
+        float TmpDist  = 0.f;
+        uint  TmpCount = 0;
+        for (uint j : Lists[i])
+        {
+            if (Neighbours[j] < Param.TotalPixels)
+            {
+                TmpDist += Param.Distances[Neighbours[j]];
+                TmpCount++;
+            }
+        }
+        Distances[i] = TmpDist / TmpCount;
+    }
 }
 
 } // DeviceUtilities

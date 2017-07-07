@@ -240,15 +240,13 @@ __global__ void RayMarching(RayMarchingParam Param)
     if (State == RMS::None) return;
 
     const uint PixelId = GetPixelId<State>(Param, GetGlobalThreadId(), Param.CurrentSubstep);
-    //    const uint PixelId = GetPixelId<FullRes>(Param, GetGlobalThreadId());
 
     if (PixelId >= Param.TotalPixels) return;
 
-    const uint PixelPosX = PixelId % Param.Size.x;
-    const uint PixelPosY = PixelId / Param.Size.y;
+    const uint2 Location = GetPixelLocationFromId(Param, PixelId);
 
-    const float OffsetX = ((float)PixelPosX - Param.Size.x / 2) / Param.Size.x * Param.Width;
-    const float OffsetY = ((float)PixelPosY - Param.Size.y / 2) / Param.Size.y * Param.Height;
+    const float OffsetX = ((float)Location.x - Param.Size.x / 2) / Param.Size.x * Param.Width;
+    const float OffsetY = ((float)Location.y - Param.Size.y / 2) / Param.Size.y * Param.Height;
 
     const float3 Target =
       Param.CameraPos + Param.CameraDir * Param.Depth - OffsetX * Param.CameraLeft - OffsetY * Param.CameraRealUp;
@@ -267,6 +265,9 @@ __global__ void RayMarching(RayMarchingParam Param)
     const float Brightness = 1.f - static_cast<float>(steps) / Param.MaxSteps;
     const uint  Color      = MakeColor((uchar)(255 * Brightness), 0, 0, 0xff);
 
+    // const float THRESHOLD = 30.f;
+    // const uint Color = MakeColor(0, TotalDist > THRESHOLD || steps >= Param.MaxSteps ? 0 : 255, 0, 0xff);
+
     Param.TexCuda[PixelId] = Color;
     if (State == RMS::HalfRes)
     {
@@ -274,6 +275,79 @@ __global__ void RayMarching(RayMarchingParam Param)
         Param.TexCuda[PixelId + Param.Size.x]     = Color;
         Param.TexCuda[PixelId + Param.Size.x + 1] = Color;
     }
+
+    const float TargetDist =
+      TotalDist > Param.DistanceThreshold || steps >= Param.MaxSteps ? Param.DistanceThreshold : TotalDist;
+    Param.Distances[PixelId] = TargetDist;
+    if (State == RMS::HalfRes)
+    {
+        Param.Distances[PixelId + 1]                = TargetDist;
+        Param.Distances[PixelId + Param.Size.x]     = TargetDist;
+        Param.Distances[PixelId + Param.Size.x + 1] = TargetDist;
+    }
+}
+
+__global__ void ComputeColor(RayMarchingParam Param)
+{
+    const uint PixelId = GetPixelId<RMS::FullRes>(Param, GetGlobalThreadId());
+
+    if (PixelId >= Param.TotalPixels) return;
+    if (Param.Distances[PixelId] >= Param.DistanceThreshold) return;
+
+    uint Neighbours[8];
+    GetNeighbourPixels(Param, PixelId, Neighbours);
+    float Distances[4];
+    GetDistValues(Param, Neighbours, Distances);
+
+    const float EpsilonX = Param.Width / Param.Size.x * 2.f * Param.Distances[PixelId] / Param.Depth;
+    const float EpsilonY = Param.Height / Param.Size.y * 2.f * Param.Distances[PixelId] / Param.Depth;
+
+    const float3 Normal = Param.Distances[PixelId] >= Param.DistanceThreshold
+                            ? make_float3(0.f)
+                            : Normalize(make_float3((Distances[1] - Distances[0]) / EpsilonX,
+                                                    (Distances[3] - Distances[2]) / EpsilonY, 1.0f));
+
+    const uint2 Location = GetPixelLocationFromId(Param, PixelId);
+
+    const float OffsetX = ((float)Location.x - Param.Size.x / 2) / Param.Size.x * Param.Width;
+    const float OffsetY = ((float)Location.y - Param.Size.y / 2) / Param.Size.y * Param.Height;
+
+    const float3 Target =
+      Param.CameraPos + Param.CameraDir * Param.Depth - OffsetX * Param.CameraLeft - OffsetY * Param.CameraRealUp;
+    const float3 Direction      = Normalize(Target - Param.CameraPos);
+    const float3 Position       = Direction * Param.Distances[PixelId];
+    const float3 LightDirection = Normalize(Position - Param.LightPos);
+
+    // const uint Color = MakeColor(Normal.x * 127 + 127, Normal.y * 127 + 127, Normal.z * 127 + 127, 0xff);
+    const uint Color = MakeColor(255 - 255 * Dot(1.f * LightDirection, Normal), 0, 0, 255);
+
+#if 0 // DEBUG
+    const uint TargetPixel = Param.TotalPixels / 2 + Param.Size.x / 2 + Param.Size.x * 130;
+    if (PixelId == TargetPixel)
+    {
+        printf("Epsilons = %f %f\n", EpsilonX, EpsilonY);
+        printf("Pixel pos = %d %d\n", Location.x, Location.y);
+        printf("Distances: mid %f, left %f, right %f, up %f, down %f\n", Param.Distances[PixelId], Distances[0],
+               Distances[1], Distances[2], Distances[3]);
+        printf("Base normal: %f %f %f\n", (Distances[1] - Distances[0]) / EpsilonX,
+               (Distances[3] - Distances[2]) / EpsilonY, EpsilonX * 0.5f);
+        printf("Normalized normal: %f %f %f\n", Normal.x, Normal.y, Normal.z);
+    }
+
+    if (PixelId == TargetPixel)
+    {
+        Param.TexCuda[PixelId] = MakeColor(0, 0, 0, 0xff);
+        for (int i = 0; i < 8; i++)
+        {
+            if (Neighbours[i] < Param.TotalPixels)
+            {
+                Param.TexCuda[Neighbours[i]] = MakeColor(0, 0, 0, 0xff);
+            }
+        }
+    }
+#endif
+
+    Param.TexCuda[PixelId] = Color;
 }
 
 void LaunchRayMarching(const RayMarchingParam& Param, const RMS Step)
@@ -299,6 +373,10 @@ void LaunchRayMarching(const RayMarchingParam& Param, const RMS Step)
     case RMS::FullRes:
         // std::cout << "Full res kernel" << std::endl;
         RayMarching<RMS::FullRes><<<Param.NumBlocks, Param.BlockSize>>>(Param);
+        break;
+    case RMS::ComputeColor:
+        // std::cout << "Compute color kernel" << std::endl;
+        ComputeColor<<<Param.NumBlocks, Param.BlockSize>>>(Param);
         break;
     case RMS::None:
         // std::cout << "Some other RMS" << std::endl;
@@ -330,4 +408,3 @@ void InitCaller::InitValue(T* Vector, size_t Size, T Value)
 
 template void InitCaller::InitValue<uint>(uint*, size_t, uint);
 template void InitCaller::InitValue<float>(float*, size_t, float);
-
