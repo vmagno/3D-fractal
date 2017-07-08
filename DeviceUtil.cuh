@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "CudaMath.h"
+#include "DistanceEstimators.cuh"
 #include "HostDeviceCode.h"
 
 namespace DeviceUtilities {
@@ -215,6 +216,60 @@ __device__ void GetDistValues(const RayMarchingParam& Param, const uint (&Neighb
         }
         Distances[i] = TmpDist / TmpCount;
     }
+}
+
+/**
+ * @brief GetRayDirection Find the direction of the ray between the camera and a certain pixel. This direction depends
+ * on the perspective set by the ray marching parameters
+ *
+ * @param Param Ray marching parameters
+ * @param PixelLocation Position of the target pixel in screen coordinates (number of pixels)
+ * @return Direction of the ray going from the camera to the given pixel
+ */
+__device__ float3 GetRayDirection(const RayMarchingParam& Param, const uint2& PixelLocation)
+{
+    const float OffsetX = ((float)PixelLocation.x - Param.Size.x / 2) / Param.Size.x * Param.Width;
+    const float OffsetY = ((float)PixelLocation.y - Param.Size.y / 2) / Param.Size.y * Param.Height;
+
+    // Position of the target point on the virtual screen (far Z-plane) in 3D
+    const float3 Target =
+      Param.CameraPos + Param.CameraDir * Param.Depth - OffsetX * Param.CameraLeft - OffsetY * Param.CameraRealUp;
+
+    return Normalize(Target - Param.CameraPos);
+}
+
+/** Compute the distance between the observer and the objet along the given direction.
+ *
+ * This function uses a ray marching algorithm to estimate the distance. At each step, the ray advances in the given
+ * direction by the distance to the closest point between the object and the current position of the ray. That closest
+ * point may lie in any direction and is computed by a "distance estimator". The position/distance of the object is
+ * found when the closest point is within a certain minimum distance (MinDistance). If the iteration count reaches the
+ * maximum given (MaxSteps), that distance is considered to be infinite. To simplify things (and reduce the number of
+ * useless iterations, infinity is reached at a certain finite threshold (DistanceThreshold).
+ *
+ * @param Param 		Ray marching parameters
+ * @param RayDirection  Direction of the ray
+ * @param[out] NumSteps	Total number of steps reached when marching the ray, before hitting the object
+ *
+ * @return Distance between the eye (camera) and the object in the given direction
+ */
+template <DEType DistFunction>
+__device__ float GetTotalDistance(const RayMarchingParam& Param, const float3& RayDirection, uint& NumSteps)
+{
+    float TotalDist = 0.f;
+    for (NumSteps = 0; NumSteps < Param.MaxSteps; NumSteps++)
+    {
+        const float3 Position = Param.CameraPos + TotalDist * RayDirection;
+        const float  Distance = DistanceEstimation::GetDistance<DistFunction>(Position);
+        TotalDist += Distance;
+        if (Distance < Param.MinDistance || TotalDist > Param.DistanceThreshold) break;
+    }
+
+    // Set distance to "threshold" if it is infinite or not found
+    if (TotalDist > Param.DistanceThreshold) NumSteps = Param.MaxSteps;
+    if (NumSteps >= Param.MaxSteps) TotalDist         = Param.DistanceThreshold;
+
+    return TotalDist;
 }
 
 } // DeviceUtilities

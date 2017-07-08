@@ -28,7 +28,7 @@ const float DEFAULT_HEIGHT = 300.f;
 
 const float3 DEFAULT_LIGHT_POSITION = DEFAULT_CAMERA_POSITION;
 
-const float DEFAULT_DISTANCE_RATIO = 0.0012f;
+const float DEFAULT_DISTANCE_RATIO = 0.0008f;
 const uint  DEFAULT_MAX_STEPS      = 25;
 
 const float INC_FACTOR = 1.1f;
@@ -136,7 +136,7 @@ void RayMarchingTexture::Update()
                 Param_.CurrentSubstep = 0;
             }
             break;
-        case RMS::FullRes: NextStep_ = RMS::None; break;
+        case RMS::FullRes: NextStep_      = RMS::None; break;
         case RMS::ComputeColor: NextStep_ = RMS::None; break;
         default: break;
         }
@@ -154,7 +154,7 @@ void RayMarchingTexture::Update()
         if (MarchTimer_.GetCount() >= 60)
         {
             cout << setprecision(3) << "Average time: " << MarchTimer_.GetAverageTimeMs() << " ms" << endl;
-            cout << setprecision(3) << "   copy time: " << CopyTimer_.GetAverageTimeMs() << " ms" << endl;
+            // cout << setprecision(3) << "   copy time: " << CopyTimer_.GetAverageTimeMs() << " ms" << endl;
             MarchTimer_.Reset();
             CopyTimer_.Reset();
         }
@@ -212,7 +212,8 @@ void RayMarchingTexture::DecreaseMinDist()
 
 void RayMarchingTexture::PrintMarchingParam()
 {
-    cout << "Min distance = " << Param_.MinDistance << endl << "Max steps = " << Param_.MaxSteps << endl;
+    cout << "Min distance = " << Param_.MinDistance << " (ratio " << Param_.DistanceRatio << ")" << endl
+         << "Max steps = " << Param_.MaxSteps << endl;
 }
 
 void RayMarchingTexture::MapBuffers()

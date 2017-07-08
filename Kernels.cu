@@ -244,29 +244,13 @@ __global__ void RayMarching(RayMarchingParam Param)
     if (PixelId >= Param.TotalPixels) return;
 
     const uint2 Location = GetPixelLocationFromId(Param, PixelId);
+    const float3 Direction = GetRayDirection(Param, Location);
 
-    const float OffsetX = ((float)Location.x - Param.Size.x / 2) / Param.Size.x * Param.Width;
-    const float OffsetY = ((float)Location.y - Param.Size.y / 2) / Param.Size.y * Param.Height;
+    uint NumSteps;
+    const float Distance = GetTotalDistance<DistFunction>(Param, Direction, NumSteps);
 
-    const float3 Target =
-      Param.CameraPos + Param.CameraDir * Param.Depth - OffsetX * Param.CameraLeft - OffsetY * Param.CameraRealUp;
-    const float3 Direction = Normalize(Target - Param.CameraPos);
-
-    float TotalDist = 0.f;
-    uint  steps;
-    for (steps = 0; steps < Param.MaxSteps; steps++)
-    {
-        const float3 Position = Param.CameraPos + TotalDist * Direction;
-        const float  Distance = GetDistance<DistFunction>(Position);
-        TotalDist += Distance;
-        if (Distance < Param.MinDistance) break;
-    }
-
-    const float Brightness = 1.f - static_cast<float>(steps) / Param.MaxSteps;
+    const float Brightness = 1.f - static_cast<float>(NumSteps) / Param.MaxSteps;
     const uint  Color      = MakeColor((uchar)(255 * Brightness), 0, 0, 0xff);
-
-    // const float THRESHOLD = 30.f;
-    // const uint Color = MakeColor(0, TotalDist > THRESHOLD || steps >= Param.MaxSteps ? 0 : 255, 0, 0xff);
 
     Param.TexCuda[PixelId] = Color;
     if (State == RMS::HalfRes)
@@ -276,14 +260,12 @@ __global__ void RayMarching(RayMarchingParam Param)
         Param.TexCuda[PixelId + Param.Size.x + 1] = Color;
     }
 
-    const float TargetDist =
-      TotalDist > Param.DistanceThreshold || steps >= Param.MaxSteps ? Param.DistanceThreshold : TotalDist;
-    Param.Distances[PixelId] = TargetDist;
+    Param.Distances[PixelId] = Distance;
     if (State == RMS::HalfRes)
     {
-        Param.Distances[PixelId + 1]                = TargetDist;
-        Param.Distances[PixelId + Param.Size.x]     = TargetDist;
-        Param.Distances[PixelId + Param.Size.x + 1] = TargetDist;
+        Param.Distances[PixelId + 1]                = Distance;
+        Param.Distances[PixelId + Param.Size.x]     = Distance;
+        Param.Distances[PixelId + Param.Size.x + 1] = Distance;
     }
 }
 
