@@ -269,6 +269,7 @@ __global__ void RayMarching(RayMarchingParam Param)
     }
 }
 
+#if 0
 __global__ void ComputeColor(RayMarchingParam Param)
 {
     const uint PixelId = GetPixelId<RMS::FullRes>(Param, GetGlobalThreadId());
@@ -300,8 +301,8 @@ __global__ void ComputeColor(RayMarchingParam Param)
     const float3 Position       = Direction * Param.Distances[PixelId];
     const float3 LightDirection = Normalize(Position - Param.LightPos);
 
-    // const uint Color = MakeColor(Normal.x * 127 + 127, Normal.y * 127 + 127, Normal.z * 127 + 127, 0xff);
-    const uint Color = MakeColor(255 - 255 * Dot(1.f * LightDirection, Normal), 0, 0, 255);
+    const uint Color = MakeColor(Normal.x * 127 + 127, Normal.y * 127 + 127, Normal.z * 127 + 127, 0xff);
+    // const uint Color = MakeColor(255 - 255 * Dot(1.f * LightDirection, Normal), 0, 0, 255);
 
 #if 0 // DEBUG
     const uint TargetPixel = Param.TotalPixels / 2 + Param.Size.x / 2 + Param.Size.x * 130;
@@ -331,6 +332,41 @@ __global__ void ComputeColor(RayMarchingParam Param)
 
     Param.TexCuda[PixelId] = Color;
 }
+#else
+__global__ void ComputeColor(RayMarchingParam Param)
+{
+    const uint PixelId = GetPixelId<RMS::FullRes>(Param, GetGlobalThreadId());
+    if (PixelId >= Param.TotalPixels) return;
+
+    // Has to be proportional to MinDistance I think... Needs some tweaking in any case
+    const float Epsilon = Param.MinDistance * 2000.5f * Param.Width / Param.Size.x * 2.0f * Param.Distances[PixelId] / Param.Depth;
+    // const float Epsilon = 0.005f;
+    const uint2 Location = GetPixelLocationFromId(Param, PixelId);
+
+    uint NumSteps;
+    float3 Direction;
+
+    Direction = GetRayDirection(Param, Location, Epsilon, 0.f);
+    const float Xplus = GetTotalDistance<DistFunction>(Param, Direction, NumSteps);
+
+    Direction = GetRayDirection(Param, Location, -Epsilon, 0.f);
+    const float Xminus = GetTotalDistance<DistFunction>(Param, Direction, NumSteps);
+
+    Direction = GetRayDirection(Param, Location, 0.f, Epsilon);
+    const float Yplus = GetTotalDistance<DistFunction>(Param, Direction, NumSteps);
+
+    Direction = GetRayDirection(Param, Location, 0.f, -Epsilon);
+    const float Yminus = GetTotalDistance<DistFunction>(Param, Direction, NumSteps);
+
+    const float3 Normal = Normalize(make_float3((Xplus - Xminus) / 2.f / Epsilon, (Yplus - Yminus) / 2.f / Epsilon, Param.Distances[PixelId] / Param.Depth));
+    const float3 Position = GetRayDirection(Param, Location) * Param.Distances[PixelId];
+    const float3 LightDirection = Normalize(Position - Param.LightPos);
+
+    const uint Color = MakeColor(Normal.x * 127 + 127, Normal.y * 127 + 127, Normal.z * 127 + 127, 255);
+
+    Param.TexCuda[PixelId] = Color;
+}
+#endif
 
 void LaunchRayMarching(const RayMarchingParam& Param, const RMS Step)
 {

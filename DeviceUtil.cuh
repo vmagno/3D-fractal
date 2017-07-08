@@ -224,16 +224,21 @@ __device__ void GetDistValues(const RayMarchingParam& Param, const uint (&Neighb
  *
  * @param Param Ray marching parameters
  * @param PixelLocation Position of the target pixel in screen coordinates (number of pixels)
+ * @param OffsetX Offset of the target point in the X direction (to get direction to a slightly different location)
+ * @param OffsetY Offset of the target point in the Y direction
  * @return Direction of the ray going from the camera to the given pixel
  */
-__device__ float3 GetRayDirection(const RayMarchingParam& Param, const uint2& PixelLocation)
+__device__ float3 GetRayDirection(const RayMarchingParam& Param, const uint2& PixelLocation, const float OffsetX = 0.f,
+                                  const float OffsetY = 0.f)
 {
-    const float OffsetX = ((float)PixelLocation.x - Param.Size.x / 2) / Param.Size.x * Param.Width;
-    const float OffsetY = ((float)PixelLocation.y - Param.Size.y / 2) / Param.Size.y * Param.Height;
+    const float TotalOffsetX = ((float)PixelLocation.x - Param.Size.x / 2) / Param.Size.x * Param.Width + OffsetX;
+    const float TotalOffsetY = ((float)PixelLocation.y - Param.Size.y / 2) / Param.Size.y * Param.Height + OffsetY;
 
     // Position of the target point on the virtual screen (far Z-plane) in 3D
-    const float3 Target =
-      Param.CameraPos + Param.CameraDir * Param.Depth - OffsetX * Param.CameraLeft - OffsetY * Param.CameraRealUp;
+    float3 Target =
+      Param.CameraPos + Param.CameraDir * Param.Depth - TotalOffsetX * Param.CameraLeft - TotalOffsetY * Param.CameraRealUp;
+//    Target.x += OffsetX;
+//    Target.y += OffsetY;
 
     return Normalize(Target - Param.CameraPos);
 }
