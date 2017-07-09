@@ -106,9 +106,9 @@ void SDLWindow::Draw()
         // const int HUDHeight = (int)Height_;
         // const int  HUDWidth  = (int)max(Width_, Height_);
         // const int  HUDHeight = (int)HUDWidth;
-        const int HUDWidth = 1920;
-        const int HUDHeight = 1080;
-        const int2 HUDPos = make_int2(((int)Width_ - HUDWidth) / 2, ((int)Height_ - HUDHeight) / 2);
+        const int  HUDWidth  = 1920;
+        const int  HUDHeight = 1080;
+        const int2 HUDPos    = make_int2(((int)Width_ - HUDWidth) / 2, ((int)Height_ - HUDHeight) / 2);
         glViewport(HUDPos.x, HUDPos.y, HUDWidth, HUDHeight);
         HUD_->Draw();
     }
@@ -188,6 +188,8 @@ void SDLWindow::HandleKeyPress(SDL_Keycode Key, bool bPress)
         Fractal2_->DecreaseMinDist();
         Fractal2_->PrintMarchingParam();
         break;
+    case SDLK_u: Fractal2_->IncreaseEpsilon(); break;
+    case SDLK_j: Fractal2_->DecreaseEpsilon(); break;
     case SDLK_z:
         if (bPress) Fractal_->MovePlane(1);
         break;

@@ -34,6 +34,7 @@ const uint  DEFAULT_MAX_STEPS      = 25;
 const float INC_FACTOR = 1.1f;
 
 const float DEFAULT_DISTANCE_THRESHOLD = 50.f;
+const float DEFAULT_EPSILON_FACTOR     = 0.4f;
 
 using RMS = RayMarchingStep;
 
@@ -74,6 +75,7 @@ RayMarchingTexture::RayMarchingTexture()
 
     Param_.CurrentSubstep    = 0;
     Param_.DistanceThreshold = DEFAULT_DISTANCE_THRESHOLD;
+    Param_.EpsilonFactor     = DEFAULT_EPSILON_FACTOR;
 }
 
 void RayMarchingTexture::Init()
@@ -157,6 +159,7 @@ void RayMarchingTexture::Update()
             // cout << setprecision(3) << "   copy time: " << CopyTimer_.GetAverageTimeMs() << " ms" << endl;
             MarchTimer_.Reset();
             CopyTimer_.Reset();
+            cout << "EpsilonFactor = " << Param_.EpsilonFactor << endl;
         }
     }
 

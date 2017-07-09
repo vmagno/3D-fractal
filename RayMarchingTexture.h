@@ -30,6 +30,9 @@ public:
     void IncreaseMinDist();
     void DecreaseMinDist();
 
+    void IncreaseEpsilon() { Param_.EpsilonFactor *= 1.110f; }
+    void DecreaseEpsilon() { Param_.EpsilonFactor *= 0.911f; }
+
     void PrintMarchingParam();
 
 private:

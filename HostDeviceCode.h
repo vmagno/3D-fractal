@@ -158,6 +158,7 @@ struct RayMarchingParam
     //
     uint  CurrentSubstep;    //!< Used when only computing part of an image
     float DistanceThreshold; //!< Distance after which a pixel is considered part of the background
+    float EpsilonFactor;     //!< To modulate the computation of surface normals with finite difference
 
     void Print()
     {
