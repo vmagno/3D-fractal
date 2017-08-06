@@ -22,7 +22,7 @@ public:
     void SetLightSource(LightSource* Light) { Light_ = Light; }
     void SetMaterial(Material* Material) { Material_ = Material; }
 
-    GLint GetNormalLocation() { return NormalLocation_; }
+    GLint GetNormalLocation() const { return NormalLocation_; }
     //    GLint GetNormalMatrixLocation() { return NormalMatrixLocation_; }
 
 private:

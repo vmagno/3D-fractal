@@ -71,10 +71,15 @@ void DisplayItem::Init(ShaderProgram* Shaders, TransformMatrix* Projection, Tran
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, NumElements * sizeof(uint3), Connectivity, GL_STATIC_DRAW);
 
     // Init normals
-    glBindBuffer(GL_ARRAY_BUFFER, VBOs_[NORMAL_VBO_ID]);
-    glBufferData(GL_ARRAY_BUFFER, NumVertices * sizeof(float3), Normals, GL_STATIC_DRAW);
-    glVertexAttribPointer(((LightShader*)Shader_)->GetNormalLocation(), 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(((LightShader*)Shader_)->GetNormalLocation());
+    if (dynamic_cast<LightShader*>(Shader_) != nullptr)
+    {
+        const LightShader* const L = dynamic_cast<LightShader*>(Shader_);
+        glBindBuffer(GL_ARRAY_BUFFER, VBOs_[NORMAL_VBO_ID]);
+        glBufferData(GL_ARRAY_BUFFER, NumVertices * sizeof(float3), Normals, GL_STATIC_DRAW);
+        glVertexAttribPointer(L->GetNormalLocation(), 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(L->GetNormalLocation());
+    }
+
 
     // Init color(s)
     if (NumColors > 1)

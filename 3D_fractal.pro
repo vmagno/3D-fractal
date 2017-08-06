@@ -81,6 +81,7 @@ LIBS += -lcudart
 
 NVCC_OPTIONS += -g -std=c++11
 NVCC_OPTIONS += --compiler-options "-Wall,-Wextra,-Wno-unused-parameter"
+NVCC_OPTIONS += --compiler-options "-fPIC"
 
 # To help when debugging
 #NVCC_OPTIONS += -G
