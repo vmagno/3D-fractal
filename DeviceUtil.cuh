@@ -266,8 +266,10 @@ __device__ float GetTotalDistance(const RayMarchingParam& Param, const float3& R
     {
         const float3 Position = Param.CameraPos + TotalDist * RayDirection;
         const float  Distance = DistanceEstimation::GetDistance<DistFunction>(Position);
+        const float MinDistance = TotalDist * Param.PixelWidthRatio;
         TotalDist += Distance;
-        if (Distance < Param.MinDistance || TotalDist > Param.DistanceThreshold) break;
+        if (Distance < MinDistance || TotalDist > Param.DistanceThreshold) break;
+//        if (Distance < Param.MinDistance || TotalDist > Param.DistanceThreshold) break;
     }
 
     // Set distance to "threshold" if it is infinite or not found

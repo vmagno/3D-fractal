@@ -44,7 +44,8 @@ HEADERS += \
     MarchingCubesTables.h \
     TexturedItem.h \
     RayMarchingTexture.h \
-    BasicTimer.h
+    BasicTimer.h \
+    Color.h
 
 unix: LIBS += -lSDL2 \
               -lGLEW \

@@ -243,10 +243,10 @@ __global__ void RayMarching(RayMarchingParam Param)
 
     if (PixelId >= Param.TotalPixels) return;
 
-    const uint2 Location = GetPixelLocationFromId(Param, PixelId);
+    const uint2  Location  = GetPixelLocationFromId(Param, PixelId);
     const float3 Direction = GetRayDirection(Param, Location);
 
-    uint NumSteps;
+    uint        NumSteps;
     const float Distance = GetTotalDistance<DistFunction>(Param, Direction, NumSteps);
 
     const float Brightness = 1.f - static_cast<float>(NumSteps) / Param.MaxSteps;
@@ -339,41 +339,48 @@ __global__ void ComputeColor(RayMarchingParam Param)
     if (PixelId >= Param.TotalPixels) return;
 
     // Has to be proportional to MinDistance I think... Needs some tweaking in any case
-    // const float Epsilon = Param.MinDistance * Param.EpsilonFactor * Param.Width / Param.Size.x * 2.0f * Param.Distances[PixelId] / Param.Depth;
-    // const float Epsilon = Param.EpsilonFactor * Param.Distances[PixelId];
-    const float Epsilon = Param.EpsilonFactor;
+    // const float Epsilon = Param.MinDistance * Param.EpsilonFactor * Param.Width / Param.Size.x * 2.0f *
+    // Param.Distances[PixelId] / Param.Depth;
+    const float Epsilon = Param.EpsilonFactor / Param.Distances[PixelId];
+    //    const float Epsilon = Param.EpsilonFactor;
     // const float Epsilon = 0.005f;
     const uint2 Location = GetPixelLocationFromId(Param, PixelId);
 
-    uint NumSteps;
+    uint   NumSteps;
     float3 Direction;
 
-    Direction = GetRayDirection(Param, Location, Epsilon, 0.f);
+    Direction         = GetRayDirection(Param, Location, Epsilon, 0.f);
     const float Xplus = GetTotalDistance<DistFunction>(Param, Direction, NumSteps);
 
-    Direction = GetRayDirection(Param, Location, -Epsilon, 0.f);
+    Direction          = GetRayDirection(Param, Location, -Epsilon, 0.f);
     const float Xminus = GetTotalDistance<DistFunction>(Param, Direction, NumSteps);
 
-    Direction = GetRayDirection(Param, Location, 0.f, Epsilon);
+    Direction         = GetRayDirection(Param, Location, 0.f, Epsilon);
     const float Yplus = GetTotalDistance<DistFunction>(Param, Direction, NumSteps);
 
-    Direction = GetRayDirection(Param, Location, 0.f, -Epsilon);
+    Direction          = GetRayDirection(Param, Location, 0.f, -Epsilon);
     const float Yminus = GetTotalDistance<DistFunction>(Param, Direction, NumSteps);
 
-    const float3 Normal = Normalize(make_float3((Xplus - Xminus) / 2.f / Epsilon, (Yplus - Yminus) / 2.f / Epsilon, Param.Distances[PixelId] / Param.Depth));
-//    const float3 Position = GetRayDirection(Param, Location) * Param.Distances[PixelId];
-//    const float3 LightDirection = Normalize(Position - Param.LightPos);
+    const float3 Normal = Normalize(make_float3((Xplus - Xminus) / 2.f / Epsilon, (Yplus - Yminus) / 2.f / Epsilon,
+                                                Param.Distances[PixelId] / Param.Depth));
+    //    const float3 Position = GetRayDirection(Param, Location) * Param.Distances[PixelId];
+    //    const float3 LightDirection = Normalize(Position - Param.LightPos);
 
-    Direction      = GetRayDirection(Param, Location);
+    Direction                   = GetRayDirection(Param, Location);
     const float3 Position       = Direction * Param.Distances[PixelId];
     const float3 LightDirection = Normalize(Position - Param.LightPos);
 
     // const uint Color = MakeColor(Normal.x * 127 + 127, Normal.y * 127 + 127, Normal.z * 127 + 127, 255);
     const float NdotL = fmaxf(Dot(-1.f * LightDirection, Normal), 0.f);
-    const uint Color = MakeColor(250 * NdotL, 0, 0, 255);
-    // const uint Color = MakeColor(LightDirection.x * 127 + 127, LightDirection.y * 127 + 127, LightDirection.z * 127 + 127, 255);
+    const uint  Color = MakeColor(255 - 250 * NdotL, 100, 0, 255);
+    // const uint Color = MakeColor(LightDirection.x * 127 + 127, LightDirection.y * 127 + 127, LightDirection.z * 127 +
+    // 127, 255);
 
-    Param.TexCuda[PixelId] = Color;
+    if (Param.Distances[PixelId] < Param.DistanceThreshold)
+    {
+        
+        Param.TexCuda[PixelId] *= NdotL;
+    }
 
 #if 1 // DEBUG
     const uint TargetPixel = Param.TotalPixels / 2 + Param.Size.x / 2;
@@ -381,22 +388,22 @@ __global__ void ComputeColor(RayMarchingParam Param)
     {
         printf("Epsilon = %f\n", Epsilon);
         printf("Pixel pos = %d %d\n", Location.x, Location.y);
-        printf("Distances: mid %f, left %f, right %f, up %f, down %f\n", Param.Distances[PixelId], Xminus,
-               Xplus, Yminus, Yplus);
-//        printf("Base normal: %f %f %f\n", (Distances[1] - Distances[0]) / EpsilonX,
-//               (Distances[3] - Distances[2]) / EpsilonY, EpsilonX * 0.5f);
-//        printf("Normalized normal: %f %f %f\n", Normal.x, Normal.y, Normal.z);
+        printf("Distances: mid %f, left %f, right %f, up %f, down %f\n", Param.Distances[PixelId], Xminus, Xplus,
+               Yminus, Yplus);
+        //        printf("Base normal: %f %f %f\n", (Distances[1] - Distances[0]) / EpsilonX,
+        //               (Distances[3] - Distances[2]) / EpsilonY, EpsilonX * 0.5f);
+        //        printf("Normalized normal: %f %f %f\n", Normal.x, Normal.y, Normal.z);
     }
 
     if (PixelId == TargetPixel)
     {
-        Param.TexCuda[PixelId] = MakeColor(0, 0, 0, 0xff);
-        Param.TexCuda[PixelId + 1] = MakeColor(0, 0, 0, 0xff);
-        Param.TexCuda[PixelId - 1] = MakeColor(0, 0, 0, 0xff);
-        Param.TexCuda[PixelId + Param.Size.x] = MakeColor(0, 0, 0, 0xff);
+        Param.TexCuda[PixelId]                    = MakeColor(0, 0, 0, 0xff);
+        Param.TexCuda[PixelId + 1]                = MakeColor(0, 0, 0, 0xff);
+        Param.TexCuda[PixelId - 1]                = MakeColor(0, 0, 0, 0xff);
+        Param.TexCuda[PixelId + Param.Size.x]     = MakeColor(0, 0, 0, 0xff);
         Param.TexCuda[PixelId + Param.Size.x + 1] = MakeColor(0, 0, 0, 0xff);
         Param.TexCuda[PixelId + Param.Size.x - 1] = MakeColor(0, 0, 0, 0xff);
-        Param.TexCuda[PixelId - Param.Size.x] = MakeColor(0, 0, 0, 0xff);
+        Param.TexCuda[PixelId - Param.Size.x]     = MakeColor(0, 0, 0, 0xff);
         Param.TexCuda[PixelId - Param.Size.x + 1] = MakeColor(0, 0, 0, 0xff);
         Param.TexCuda[PixelId - Param.Size.x - 1] = MakeColor(0, 0, 0, 0xff);
     }

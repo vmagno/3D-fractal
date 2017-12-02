@@ -87,18 +87,13 @@ void SDLWindow::Draw()
 
     Camera_.SetMatrix(&VisMatrix_);
     SetProjection();
+    
     //    Light_.SetPosition(Camera_.GetPosition() + Camera_.GetDirection());
 
     for (auto it = SceneObjects_.begin(); it != SceneObjects_.end(); it++)
     {
         (*it)->Draw();
     }
-
-    //    glColor4f(1.f, 1.f, 1.f, 1.f);
-    //    glPointSize(20.f);
-    //    glBegin(GL_POINTS);
-    //    glVertex3fv((float*)&Light_.GetPosition());
-    //    glEnd();
 
     // Draw HUD
     {

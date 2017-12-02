@@ -134,7 +134,7 @@ void RayMarchingTexture::Update()
             Param_.CurrentSubstep++;
             if (Param_.CurrentSubstep > 3)
             {
-                NextStep_             = RMS::None;
+                NextStep_             = RMS::ComputeColor;
                 Param_.CurrentSubstep = 0;
             }
             break;
@@ -180,7 +180,7 @@ void RayMarchingTexture::SetCameraInfo(const float3 Position, const float3 Direc
     Param_.CameraUp  = Up;
 }
 
-float RayMarchingTexture::GetDistanceFromCamera()
+float RayMarchingTexture::GetDistanceFromCamera() const
 {
     return GetDistanceFromPos(Param_.CameraPos);
 }
@@ -191,6 +191,9 @@ void RayMarchingTexture::SetPerspective(float FOVy, float /*AspectRatio*/, float
     Param_.Height = tanf(FOVy * 3.14159265f / 180.f / 2.f) * Param_.Depth * 2.f;
     //    Param_.Width  = Param_.Height * AspectRatio;
     Param_.Width = Param_.Height * (float)Param_.Size.x / Param_.Size.y;
+    
+    const float PixelWidth = Param_.Width / Param_.Size.x;
+    Param_.PixelWidthRatio = PixelWidth / Param_.Depth * 0.7071068f;
 }
 
 void RayMarchingTexture::IncreaseMaxSteps()

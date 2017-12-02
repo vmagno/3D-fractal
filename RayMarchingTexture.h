@@ -16,7 +16,7 @@ public:
 
     inline GLuint GetTextureId() const { return Texture_; }
     void SetCameraInfo(const float3 Position, const float3 Direction, const float3 Up);
-    float GetDistanceFromCamera();
+    float GetDistanceFromCamera() const;
     void SetPerspective(float FOVy, float AspectRatio, float zNear, float zFar);
 
     inline void ResetView()

@@ -154,6 +154,7 @@ struct RayMarchingParam
     float DistanceRatio;
     float MinDistance;
     uint  MaxSteps;
+    float PixelWidthRatio; //!< Used to compute the width of a pixel, based on distance from the camera
 
     //
     uint  CurrentSubstep;    //!< Used when only computing part of an image
