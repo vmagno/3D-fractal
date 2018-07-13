@@ -1,7 +1,9 @@
 #include "Camera.h"
 
 #include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/rotate_vector.hpp>
+#undef GLM_ENABLE_EXPERIMENTAL
 
 #include "CudaMath.h"
 
